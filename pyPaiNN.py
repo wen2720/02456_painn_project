@@ -409,7 +409,8 @@ args = cli(args)
 seed_everything(args.seed)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(device)
-print(torch.cuda.current_device())
+device_name = torch.cuda.get_device_name(torch.cuda.current_device())
+print(device_name)
 dm = QM9DataModule(
     target=args.target,
     data_dir=args.data_dir,
@@ -449,12 +450,14 @@ optimizer = torch.optim.AdamW(
     weight_decay=args.weight_decay,
 )
 
-painn.train()
-#pbar = trange(args.num_epochs)
+
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
+
+painn.train()
+#pbar = trange(args.num_epochs)
 #for epoch in pbar:
 for epoch in range(args.num_epochs):
 
