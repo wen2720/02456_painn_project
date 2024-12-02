@@ -409,6 +409,7 @@ args = cli(args)
 seed_everything(args.seed)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(device)
+print(torch.cuda.current_device())
 dm = QM9DataModule(
     target=args.target,
     data_dir=args.data_dir,
@@ -449,8 +450,13 @@ optimizer = torch.optim.AdamW(
 )
 
 painn.train()
-pbar = trange(args.num_epochs)
-for epoch in pbar:
+#pbar = trange(args.num_epochs)
+
+train_losses, val_losses, val_maes = [], [], []
+best_val_loss = float('inf')
+patience = 30  # Number of epochs to wait before stopping
+#for epoch in pbar:
+for epoch in range(args.num_epochs):
 
     loss_epoch = 0.
     for batch in dm.train_dataloader():
@@ -467,16 +473,67 @@ for epoch in pbar:
             atomic_contributions=atomic_contributions,
         )
         loss_step = F.mse_loss(preds, batch.y, reduction='sum')
-
         loss = loss_step / len(batch.y)
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
         loss_epoch += loss_step.detach().item()
-    loss_epoch /= len(dm.data_train)
-    pbar.set_postfix_str(f'Train loss: {loss_epoch:.3e}')
 
+    loss_epoch /= len(dm.data_train)
+    train_losses.append(loss_epoch)
+    #pbar.set_postfix_str(f'Train loss: {loss_epoch:.3e}')
+
+    # Validation Loop
+    painn.eval()
+    val_loss_epoch = 0.0
+    #mae_epoch = 0.0
+    with torch.no_grad():
+        for batch in dm.val_dataloader():
+            batch = batch.to(device)
+
+            atomic_contributions = painn(
+                atoms=batch.z,
+                atom_positions=batch.pos,
+                graph_indexes=batch.batch,
+            )
+            preds = post_processing(
+                atoms=batch.z,
+                graph_indexes=batch.batch,
+                atomic_contributions=atomic_contributions,
+            )
+            loss_step = F.mse_loss(preds, batch.y, reduction='sum')
+            #mae_step = F.l1_loss(preds, batch.y, reduction='sum')
+
+            val_loss_epoch += loss_step.item()
+            #mae_epoch += mae_step.item()
+
+    val_loss_epoch /= len(dm.data_val)
+    #mae_epoch /= len(dm.data_val)
+
+    val_losses.append(val_loss_epoch)
+    #val_maes.append(mae_epoch)
+
+    print(f"Epoch: {epoch + 1}\tTrain loss: {loss_epoch:.3e}\tVal loss: {val_loss_epoch:.3e}")
+
+    # # Save the best model
+    # if val_loss_epoch < best_val_loss:
+    #     best_val_loss = val_loss_epoch
+    #     torch.save(painn.state_dict(), "best_model.pth")
+
+    # Early Stopping
+    if val_loss_epoch < best_val_loss:
+        best_val_loss = val_loss_epoch
+        wait = 0  # Reset the patience counter
+        torch.save(painn.state_dict(), "better_painn")  # Save the best model
+    else:
+        wait += 1
+        if wait >= patience:
+            print(f"Early stopping triggered after {epoch + 1} epochs.")
+            break
+
+painn.load_state_dict(torch.load("better_painn"))
 mae = 0
 painn.eval()
 with torch.no_grad():
@@ -498,3 +555,18 @@ with torch.no_grad():
 mae /= len(dm.data_test)
 unit_conversion = dm.unit_conversion[args.target]
 print(f'Test MAE: {unit_conversion(mae):.3f}')
+
+# Plot Training and Validation Metrics
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10, 6))
+plt.plot(train_losses, label="Train Loss")
+plt.plot(val_losses, label="Val Loss")
+#plt.plot(val_maes, label="Val MAE")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.legend()
+plt.title("Training and Validation Metrics")
+#plt.show()
+plt.savefig("train_val_loss.png")
+plt.close()
