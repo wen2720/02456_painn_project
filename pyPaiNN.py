@@ -526,7 +526,7 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss < best_val_loss:
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
-        torch.save(painn.state_dict(), "better_painn")  # Save the best model
+        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
         if wait >= patience:
@@ -538,7 +538,7 @@ for epoch in range(args.num_epochs):
     print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
 
 
-painn.load_state_dict(torch.load("better_painn"))
+painn.load_state_dict(torch.load("better_painn.pth"))
 mae = 0
 painn.eval()
 with torch.no_grad():
