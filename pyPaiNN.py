@@ -395,7 +395,7 @@ def cli(args: list = []):
 
     # Training    
     parser.add_argument('--lr', default=1e-3, type=float)
-    parser.add_argument('--weight_decay', default=1e-7, type=float)
+    parser.add_argument('--weight_decay', default=0.01, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -526,11 +526,11 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss < best_val_loss:
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
-        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
         if wait >= patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
+            torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
             break
 
     scheduler.step(smoothed_val_loss)
