@@ -394,8 +394,6 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    #parser.add_argument('--lr', default=5e-4, type=float)
-    #parser.add_argument('--weight_decay', default=0.01, type=float)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--weight_decay', default=1e-7, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
@@ -458,9 +456,15 @@ train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
 
+smoothed_val_loss = None
+smoothing_factor = 0.9
+wait = 0
+
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
+)
+
 painn.train()
-#pbar = trange(args.num_epochs)
-#for epoch in pbar:
 for epoch in range(args.num_epochs):
 
     loss_epoch = 0.
@@ -488,12 +492,10 @@ for epoch in range(args.num_epochs):
 
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
-    #pbar.set_postfix_str(f'Train loss: {loss_epoch:.3e}')
 
     # Validation Loop
     painn.eval()
     val_loss_epoch = 0.0
-    #mae_epoch = 0.0
     with torch.no_grad():
         for batch in dm.val_dataloader():
             batch = batch.to(device)
@@ -509,36 +511,34 @@ for epoch in range(args.num_epochs):
                 atomic_contributions=atomic_contributions,
             )
             loss_step = F.mse_loss(preds, batch.y, reduction='sum')
-            #mae_step = F.l1_loss(preds, batch.y, reduction='sum')
 
             val_loss_epoch += loss_step.item()
-            #mae_epoch += mae_step.item()
 
     val_loss_epoch /= len(dm.data_val)
-    #mae_epoch /= len(dm.data_val)
-
     val_losses.append(val_loss_epoch)
-    #val_maes.append(mae_epoch)
 
-    print(f"Epoch: {epoch + 1}\tTrain loss: {loss_epoch:.3e}\tVal loss: {val_loss_epoch:.3e}")
-
-    # # Save the best model
-    # if val_loss_epoch < best_val_loss:
-    #     best_val_loss = val_loss_epoch
-    #     torch.save(painn.state_dict(), "best_model.pth")
+    if smoothed_val_loss is None:
+        smoothed_val_loss = val_loss_epoch
+    else:
+        smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch
 
     # Early Stopping
-    if val_loss_epoch < best_val_loss:
-        best_val_loss = val_loss_epoch
+    if smoothed_val_loss < best_val_loss:
+        best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
-        torch.save(painn.state_dict(), "better_painn")  # Save the best model
+        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
         if wait >= patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-painn.load_state_dict(torch.load("better_painn"))
+    scheduler.step(smoothed_val_loss)
+    current_lr = scheduler.optimizer.param_groups[0]['lr']
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+
+
+painn.load_state_dict(torch.load("better_painn.pth"))
 mae = 0
 painn.eval()
 with torch.no_grad():
@@ -567,7 +567,6 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
 plt.plot(val_losses, label="Val Loss")
-#plt.plot(val_maes, label="Val MAE")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.legend()
