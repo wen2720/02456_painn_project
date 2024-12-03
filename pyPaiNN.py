@@ -394,7 +394,7 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=1e-3, type=float)
+    parser.add_argument('--lr', default=5e-4, type=float)
     parser.add_argument('--weight_decay', default=0.01, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
@@ -538,7 +538,7 @@ for epoch in range(args.num_epochs):
     print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
 
 
-painn.load_state_dict(torch.load("better_painn.pth"))
+painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
 painn.eval()
 with torch.no_grad():
