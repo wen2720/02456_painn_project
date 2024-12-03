@@ -1,4 +1,5 @@
 #!/bin/sh
+
 ### General options
 ### –- specify queue --
 #BSUB -q gpuv100
@@ -7,8 +8,8 @@
 ### -- ask for number of cores (default: 1) --
 ##BSUB -n 8
 #BSUB -n 4
-#BSUB -R "span[hosts]"
-##BSUB -R "span[hosts=1]"
+##BSUB -R "span[hosts]"
+#BSUB -R "span[hosts=1]"
 ### -- Select the resources: 1 gpu in exclusive process mode --
 ##BSUB -gpu "num=2:mode=exclusive_process"
 #BSUB -gpu "num=1:mode=exclusive_process"
@@ -39,5 +40,6 @@ module load cuda/11.8
 module load python3/3.10.13
 
 source $BLACKHOLE/group85/painn/bin/activate
-python3 $BLACKHOLE/group85/PaiNN/pyPainnMessageUpdate.py
+python3 $BLACKHOLE/group85/02456_painn_project/pyPaiNN.py
+
 
