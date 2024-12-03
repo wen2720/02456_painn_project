@@ -523,11 +523,11 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss < best_val_loss:
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
+        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
         if wait >= patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
-            torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
             break
 
     scheduler.step(smoothed_val_loss)
