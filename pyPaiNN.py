@@ -226,12 +226,9 @@ class Message(nn.Module):
     def __init__(self, Ls=None, Lrbf=None, nRbf=20, nF=128):
         super(Message, self).__init__()
         self.Ls = Ls if Ls is not None else nn.Sequential(
-            Linear(nF, 16),
+            Linear(nF, nF),
             SiLU(),
-            Linear(16, 3*nF),
-            BatchNorm1d(3*nF),
-            Dropout(0.5)
-
+            Linear(nF, 3*nF),
         )
         self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
 
@@ -276,11 +273,9 @@ class Update(nn.Module):
         self.Luv = Luv if Luv is not None else Linear(3, 3, False)
         
         self.Ls = Ls if Ls is not None else nn.Sequential(
-            Linear(in_features=2*nF, out_features=16),
+            Linear(in_features=2*nF, out_features=nF),
             SiLU(),
-            Linear(in_features=16, out_features=3*nF),
-            BatchNorm1d(3*nF),
-            Dropout(0.5)
+            Linear(in_features=nF, out_features=3*nF),
         )
 
     def forward(self, vi, si):
@@ -346,9 +341,9 @@ class PaiNN(nn.Module):
         self.Lu = Lu
 
         self.Lr = nn.Sequential(
-            Linear(in_features=128, out_features=64),
+            Linear(in_features=128, out_features=32),
             SiLU(),
-            Linear(in_features=64, out_features=1),
+            Linear(in_features=32, out_features=1),
         )
 
     def forward(
