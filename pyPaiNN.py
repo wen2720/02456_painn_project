@@ -346,9 +346,9 @@ class PaiNN(nn.Module):
         self.Lu = Lu
 
         self.Lr = nn.Sequential(
-            Linear(in_features=128, out_features=128),
+            Linear(in_features=128, out_features=64),
             SiLU(),
-            Linear(in_features=128, out_features=1),
+            Linear(in_features=64, out_features=1),
         )
 
     def forward(
@@ -520,7 +520,7 @@ for epoch in range(args.num_epochs):
             )
             loss_step = F.mse_loss(preds, batch.y, reduction='sum')
 
-            val_loss_epoch += loss_step.item()
+            val_loss_epoch += loss_step.detach().item()
 
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
@@ -535,11 +535,11 @@ for epoch in range(args.num_epochs):
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
         torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
-    else:
-        wait += 1
-        if wait >= patience:
-            print(f"Early stopping triggered after {epoch + 1} epochs.")
-            break
+    # else:
+    #     wait += 1
+    #     if wait >= patience:
+    #         print(f"Early stopping triggered after {epoch + 1} epochs.")
+    #         break
 
     scheduler.step(smoothed_val_loss)
     current_lr = scheduler.optimizer.param_groups[0]['lr']
