@@ -219,16 +219,19 @@ class AtomwisePostProcessing(nn.Module):
         return output_per_graph
     
 import torch.nn as nn
-from torch.nn import Linear, SiLU
+from torch.nn import Linear, SiLU, BatchNorm1d, Dropout
 from torch_scatter import scatter_sum
 
 class Message(nn.Module):
     def __init__(self, Ls=None, Lrbf=None, nRbf=20, nF=128):
         super(Message, self).__init__()
         self.Ls = Ls if Ls is not None else nn.Sequential(
-            Linear(nF, nF),
+            Linear(nF, 16),
             SiLU(),
-            Linear(nF, 3*nF),
+            Linear(16, 3*nF),
+            BatchNorm1d(3*nF),
+            Dropout(0.5)
+
         )
         self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
 
@@ -265,16 +268,19 @@ class Message(nn.Module):
         d_sim = scatter_sum(SPLIT2, eij[1], dim=0)
         return d_vim, d_sim
 
+
 class Update(nn.Module):
-    def __init__(self, Luu=None, Luv=None, Ls=None):
+    def __init__(self, Luu=None, Luv=None, Ls=None, nF=128):
         super(Update, self).__init__()
         self.Luu = Luu if Luu is not None else Linear(3, 3, False)
         self.Luv = Luv if Luv is not None else Linear(3, 3, False)
         
         self.Ls = Ls if Ls is not None else nn.Sequential(
-            Linear(in_features=256, out_features=128),
+            Linear(in_features=2*nF, out_features=16),
             SiLU(),
-            Linear(in_features=128, out_features=384),
+            Linear(in_features=16, out_features=3*nF),
+            BatchNorm1d(3*nF),
+            Dropout(0.5)
         )
 
     def forward(self, vi, si):
@@ -370,6 +376,7 @@ class PaiNN(nn.Module):
         Sigma = self.Lr(si)
 
         return Sigma
+    
     
 
 def cli(args: list = []):
