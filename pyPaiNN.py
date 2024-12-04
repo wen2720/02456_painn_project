@@ -346,11 +346,9 @@ class PaiNN(nn.Module):
         self.Lu = Lu
 
         self.Lr = nn.Sequential(
-            Linear(in_features=128, out_features=16),
-            BatchNorm1d(16),
+            Linear(in_features=128, out_features=128),
             SiLU(),
-            Dropout(0.5),
-            Linear(in_features=16, out_features=1),
+            Linear(in_features=128, out_features=1),
         )
 
     def forward(
