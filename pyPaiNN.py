@@ -340,9 +340,9 @@ class PaiNN(nn.Module):
         self.Lu = Lu
 
         self.Lr = nn.Sequential(
-            Linear(in_features=128, out_features=64),
+            Linear(in_features=128, out_features=128),
             SiLU(),
-            Linear(in_features=64, out_features=1),
+            Linear(in_features=128, out_features=1),
         )
 
     def forward(
