@@ -274,7 +274,7 @@ class Update(nn.Module):
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(in_features=256, out_features=128),
             SiLU(),
-            Linear(in_features=128, out_features=256),
+            Linear(in_features=128, out_features=384),
         )
 
     def forward(self, vi, si):
@@ -284,15 +284,18 @@ class Update(nn.Module):
         V_norm = torch.norm(Vvi,dim=-1)
         STACK = torch.hstack([V_norm, si])
 
+        SP = torch.sum(Uvi * Vvi, dim=-1) 
+
         SPLIT = self.Ls(STACK)
         SPLIT1 = SPLIT[:, 0:128]
-        SPLIT2 = SPLIT[:, 128:]
+        SPLIT2 = SPLIT[:, 128:256]
+        SPLIT3 = SPLIT[:, 256:]
 
         d_viu = Uvi * SPLIT1.unsqueeze(-1).repeat(1, 1, 3)
-        d_siu = SPLIT2
+        d_siu = SP * SPLIT2 + SPLIT3
 
         return d_viu, d_siu
-    
+
 from torch_geometric.nn import radius_graph
 
 class PaiNN(nn.Module):
@@ -392,7 +395,8 @@ def cli(args: list = []):
 
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
-    parser.add_argument('--weight_decay', default=0.01, type=float)
+    #parser.add_argument('--weight_decay', default=0.01, type=float)
+    parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
