@@ -274,7 +274,7 @@ class Update(nn.Module):
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(in_features=256, out_features=128),
             SiLU(),
-            Linear(in_features=128, out_features=384),
+            Linear(in_features=128, out_features=256),
         )
 
     def forward(self, vi, si):
@@ -284,15 +284,12 @@ class Update(nn.Module):
         V_norm = torch.norm(Vvi,dim=-1)
         STACK = torch.hstack([V_norm, si])
 
-        SP = torch.sum(Uvi * Vvi, dim=-1) 
-
         SPLIT = self.Ls(STACK)
         SPLIT1 = SPLIT[:, 0:128]
-        SPLIT2 = SPLIT[:, 128:256]
-        SPLIT3 = SPLIT[:, 256:]
+        SPLIT2 = SPLIT[:, 128:]
 
         d_viu = Uvi * SPLIT1.unsqueeze(-1).repeat(1, 1, 3)
-        d_siu = SP * SPLIT2 + SPLIT3
+        d_siu = SPLIT2
 
         return d_viu, d_siu
     
@@ -526,11 +523,11 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss < best_val_loss:
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
+        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
         if wait >= patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
-            torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
             break
 
     scheduler.step(smoothed_val_loss)
