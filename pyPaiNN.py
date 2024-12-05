@@ -219,7 +219,7 @@ class AtomwisePostProcessing(nn.Module):
         return output_per_graph
     
 import torch.nn as nn
-from torch.nn import Linear, SiLU, BatchNorm1d, Dropout
+from torch.nn import Linear, SiLU
 from torch_scatter import scatter_sum
 
 class Message(nn.Module):
@@ -258,10 +258,10 @@ class Message(nn.Module):
         SPLIT2 = phiW[:,128:256]
         SPLIT3 = phiW[:,256:]
 
-        phiWvv = vj * SPLIT1.unsqueeze(-1).repeat(1, 1, 3)
+        phiWvv = vj * SPLIT1
         phiWvs = SPLIT3.unsqueeze(-1) * rij_hat.unsqueeze(1)
         
-        d_vim = scatter_sum((phiWvv + phiWvs), eij[1], dim=0)
+        d_vim = scatter_sum((phiWvv.unsqueeze(-1) + phiWvs), eij[1], dim=0)
         d_sim = scatter_sum(SPLIT2, eij[1], dim=0)
         return d_vim, d_sim
 
@@ -269,7 +269,7 @@ class Message(nn.Module):
 class Update(nn.Module):
     def __init__(self, Luu=None, Luv=None, Ls=None, nF=128):
         super(Update, self).__init__()
-        self.Luu = Luu if Luu is not None else Linear(3, 3, False)
+        self.Luu = Luu if Luu is not None else Linear(384, 128, False)
         self.Luv = Luv if Luv is not None else Linear(3, 3, False)
         
         self.Ls = Ls if Ls is not None else nn.Sequential(
@@ -279,23 +279,23 @@ class Update(nn.Module):
         )
 
     def forward(self, vi, si):
-        Uvi = self.Luu(vi) 
+        Uvi = self.Luu(vi.view(vi.size(0), -1)) 
         Vvi = self.Luv(vi)
 
         V_norm = torch.norm(Vvi,dim=-1)
         STACK = torch.hstack([V_norm, si])
 
-        SP = torch.sum(Uvi * Vvi, dim=-1) 
+        SP = torch.sum(Uvi.unsqueeze(-1) * Vvi, dim=-1) 
 
         SPLIT = self.Ls(STACK)
         SPLIT1 = SPLIT[:, 0:128]
         SPLIT2 = SPLIT[:, 128:256]
         SPLIT3 = SPLIT[:, 256:]
 
-        d_viu = Uvi * SPLIT1.unsqueeze(-1).repeat(1, 1, 3)
+        d_viu = Uvi * SPLIT1
         d_siu = SP * SPLIT2 + SPLIT3
 
-        return d_viu, d_siu
+        return d_viu.unsqueeze(-1).repeat(1, 1, 3), d_siu
 
 from torch_geometric.nn import radius_graph
 
@@ -356,7 +356,8 @@ class PaiNN(nn.Module):
         eij = radius_graph(atom_positions, r=self.cutoff_dist, batch=graph_indexes)
         sj = si[eij[0]]
         vi = torch.zeros_like(si).unsqueeze(-1).repeat(1, 1, 3)
-        vj = vi[eij[0]]
+        #vj = vi[eij[0]]
+        vj = torch.zeros_like(si[eij[0]])
         rij_vec = atom_positions[eij[0]] - atom_positions[eij[1]]
         for _ in range(self.num_message_passing_layers):
             d_vim, d_sim = self.Lm(vj, sj, rij_vec, eij)
@@ -515,7 +516,7 @@ for epoch in range(args.num_epochs):
             )
             loss_step = F.mse_loss(preds, batch.y, reduction='sum')
 
-            val_loss_epoch += loss_step.detach().item()
+            val_loss_epoch += loss_step.item()
 
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
