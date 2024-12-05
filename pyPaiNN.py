@@ -341,9 +341,9 @@ class PaiNN(nn.Module):
         self.Lu = Lu
 
         self.Lr = nn.Sequential(
-            Linear(in_features=128, out_features=32),
+            Linear(in_features=128, out_features=64),
             SiLU(),
-            Linear(in_features=32, out_features=1),
+            Linear(in_features=64, out_features=1),
         )
 
     def forward(
@@ -464,7 +464,7 @@ smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-5
 )
 
 painn.train()
@@ -530,11 +530,11 @@ for epoch in range(args.num_epochs):
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
         torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
-    # else:
-    #     wait += 1
-    #     if wait >= patience:
-    #         print(f"Early stopping triggered after {epoch + 1} epochs.")
-    #         break
+    else:
+        wait += 1
+        if wait >= patience:
+            print(f"Early stopping triggered after {epoch + 1} epochs.")
+            break
 
     scheduler.step(smoothed_val_loss)
     current_lr = scheduler.optimizer.param_groups[0]['lr']
