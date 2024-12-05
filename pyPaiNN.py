@@ -514,9 +514,9 @@ for epoch in range(args.num_epochs):
                 graph_indexes=batch.batch,
                 atomic_contributions=atomic_contributions,
             )
-            loss_step = F.mse_loss(preds, batch.y, reduction='sum')
+            val_loss_step = F.mse_loss(preds, batch.y, reduction='sum')
 
-            val_loss_epoch += loss_step.item()
+            val_loss_epoch += val_loss_step.item()
 
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
