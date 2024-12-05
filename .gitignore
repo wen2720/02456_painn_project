@@ -1,6 +1,6 @@
 __pycache__/
 data/processed/*
 data/raw/*
-*.out
+.out
 *.pth
 *.egg-info
