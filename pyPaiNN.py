@@ -358,7 +358,6 @@ class PaiNN(nn.Module):
         sj = si[eij[0]]
         vi = torch.zeros_like(si).unsqueeze(-1).repeat(1, 1, 3)
         vj = vi[eij[0]]
-        #vj = torch.zeros_like(si[eij[0]])
         rij_vec = atom_positions[eij[0]] - atom_positions[eij[1]]
         for _ in range(self.num_message_passing_layers):
             d_vim, d_sim = self.Lm(vj, sj, rij_vec, eij)
@@ -399,7 +398,7 @@ def cli(args: list = []):
 
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
-    parser.add_argument('--weight_decay', default=1e-3, type=float)
+    parser.add_argument('--weight_decay', default=1e-2, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -465,8 +464,9 @@ smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-3
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
 )
+
 
 painn.train()
 for epoch in range(args.num_epochs):
@@ -524,7 +524,7 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss is None:
         smoothed_val_loss = val_loss_epoch
     else:
-        smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch
+        smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
     # Early Stopping
     if smoothed_val_loss < best_val_loss:
@@ -536,10 +536,11 @@ for epoch in range(args.num_epochs):
         if wait >= patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
-
-    scheduler.step(smoothed_val_loss)
+    
     current_lr = scheduler.optimizer.param_groups[0]['lr']
     print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    scheduler.step(smoothed_val_loss)
+    
 
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
