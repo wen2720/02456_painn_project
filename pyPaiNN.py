@@ -466,7 +466,7 @@ smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=10, threshold=1e-5
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
 )
 
 
