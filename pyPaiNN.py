@@ -219,51 +219,50 @@ class AtomwisePostProcessing(nn.Module):
         return output_per_graph
     
 import torch.nn as nn
-from torch.nn import Linear, SiLU, BatchNorm1d, Dropout
+from torch.nn import Linear, SiLU
 from torch_scatter import scatter_sum
+from torch_geometric.nn import MessagePassing
 
-class Message(nn.Module):
-    def __init__(self, Ls=None, Lrbf=None, nRbf=20, nF=128):
-        super(Message, self).__init__()
+class Message(MessagePassing):
+    def __init__(self, Ls=None, Lrbf=None, nRbf=20, nF=128, rCut=5.0):
+        super(Message, self).__init__(aggr='add')
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(nF, nF),
             SiLU(),
             Linear(nF, 3*nF),
         )
         self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
+        self.nRbf = nRbf
+        self.rCut = rCut
 
     def fCut(self, rij_norm, rCut):
         f_cut = 0.5 * (torch.cos(torch.pi * rij_norm / rCut) + 1)
         f_cut[rij_norm > rCut] = 0 
         return f_cut
 
-    def fRBF(self, rij_norm, rCut, nRbf=20):
+    def fRBF(self, rij_norm, rCut, nRbf):
         Trbf = torch.arange(1, nRbf + 1, device=rij_norm.device).float()
         rij_norm = rij_norm.unsqueeze(-1)  
         RBF = torch.sin(Trbf * torch.pi * rij_norm / rCut) / (rij_norm + 1e-8)
         return RBF
 
-    def forward(self, vj, sj, rij_vec, eij, rCut=5.0, nRbf=20):
-        rij_norm = torch.norm(rij_vec, dim=-1)
-        rij_hat =  rij_vec / (rij_norm.unsqueeze(-1) + 1e-8)
-
-        RBF = self.fRBF(rij_norm, rCut, nRbf)
+    def forward(self, si, eij, rij_norm):       
+        return self.propagate(eij, si=si, rij_norm=rij_norm)
+    
+    def message(self, si_j, rij_norm):
+        RBF = self.fRBF(rij_norm, self.rCut, self.nRbf)
         T_RBF = self.Lrbf(RBF)
-        Ws = T_RBF * self.fCut(rij_norm,5.0).unsqueeze(-1) 
+        Ws = T_RBF * self.fCut(rij_norm,self.rCut).unsqueeze(-1) 
 
-        phi = self.Ls(sj)
+        phi = self.Ls(si_j)
         phiW = phi * Ws
-
-        SPLIT1 = phiW[:,0:128]
-        SPLIT2 = phiW[:,128:256]
-        SPLIT3 = phiW[:,256:]
-
-        phiWvv = vj * SPLIT1.unsqueeze(-1).repeat(1, 1, 3)
-        phiWvs = SPLIT3.unsqueeze(-1) * rij_hat.unsqueeze(1)
-        
-        d_vim = scatter_sum((phiWvv + phiWvs), eij[1], dim=0)
-        d_sim = scatter_sum(SPLIT2, eij[1], dim=0)
-        return d_vim, d_sim
+        return phiW
+    
+    def aggregate(self, phiW):
+        return phiW
+    
+    def update(self, aggr):
+        return aggr
 
 
 
@@ -313,20 +312,7 @@ class PaiNN(nn.Module):
         num_unique_atoms: int = 100,
         cutoff_dist: float = 5.0,
     ) -> None:
-        """
-        Args:
-            num_message_passing_layers: Number of message passing layers in
-                the PaiNN model.
-            num_features: Size of the node embeddings (scalar features) and
-                vector features.
-            num_outputs: Number of model outputs. In most cases 1.
-            num_rbf_features: Number of radial basis functions to represent
-                distances.
-            num_unique_atoms: Number of unique atoms in the data that we want
-                to learn embeddings for.
-            cutoff_dist: Euclidean distance threshold for determining whether 
-                two nodes (atoms) are neighbours.
-        """
+        
         super().__init__()
         #raise NotImplementedError
         self.num_message_passing_layers = num_message_passing_layers
@@ -355,12 +341,27 @@ class PaiNN(nn.Module):
     ) -> torch.FloatTensor:
         si = self.zi(atoms)
         eij = radius_graph(atom_positions, r=self.cutoff_dist, batch=graph_indexes)
-        sj = si[eij[0]]
+        #sj = si[eij[0]]
         vi = torch.zeros_like(si).unsqueeze(-1).repeat(1, 1, 3)
         vj = vi[eij[0]]
         rij_vec = atom_positions[eij[0]] - atom_positions[eij[1]]
+        rij_norm = torch.norm(rij_vec, dim=-1)
+        rij_hat =  rij_vec / (rij_norm.unsqueeze(-1) + 1e-8)
+
         for _ in range(self.num_message_passing_layers):
-            d_vim, d_sim = self.Lm(vj, sj, rij_vec, eij)
+            #d_vim, d_sim = self.Lm(vj, sj, rij_vec, eij)
+            #vi = vi + d_vim
+            #si = si + d_sim
+            phiW  = self.Lm(si, eij, rij_norm)
+            SPLIT1 = phiW[:,0:128]
+            SPLIT2 = phiW[:,128:256]
+            SPLIT3 = phiW[:,256:]
+
+            phiWvv = vj * SPLIT1.unsqueeze(-1).repeat(1, 1, 3)
+            phiWvs = SPLIT3.unsqueeze(-1) * rij_hat.unsqueeze(1)
+            
+            d_vim = scatter_sum((phiWvv + phiWvs), eij[1], dim=0)
+            d_sim = scatter_sum(SPLIT2, eij[1], dim=0)
             vi = vi + d_vim
             si = si + d_sim
 
@@ -372,6 +373,7 @@ class PaiNN(nn.Module):
         Sigma = self.Lr(si)
 
         return Sigma
+    
     
     
 
@@ -464,7 +466,7 @@ smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=10, threshold=1e-5
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
 )
 
 
