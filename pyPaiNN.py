@@ -306,7 +306,7 @@ class PaiNN(nn.Module):
     """
     def __init__(
         self, Lm, Lu,
-        num_message_passing_layers: int = 3,
+        num_message_passing_layers: int = 1,
         num_features: int = 128,
         num_outputs: int = 1,
         num_rbf_features: int = 20,
