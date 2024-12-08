@@ -475,10 +475,16 @@ swa_start = 15
 print(args)
 print(painn)
 
+import csv
+iCsv = "training_log.tsv"
 
-painn.train()
+with open(iCsv, mode="w", newline="") as file:
+    writer = csv.writer(file, delimiter="\t")  
+    writer.writerow(["Epoch", "Training loss", "Validation loss", "Learning Rate"])
+
+
 for epoch in range(args.num_epochs):
-
+    painn.train()
     loss_epoch = 0.
     for batch in dm.train_dataloader():
         batch = batch.to(device)
@@ -505,9 +511,10 @@ for epoch in range(args.num_epochs):
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
 
+
     if epoch >= swa_start:
-        swa_model.update_parameters(painn)  # Update SWA model parameters
-        swa_scheduler.step()  # Step the SWA learning rate scheduler
+        swa_model.update_parameters(painn)  
+        swa_scheduler.step()  
 
     # Validation Loop
     painn.eval()
@@ -549,11 +556,14 @@ for epoch in range(args.num_epochs):
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    #current_lr = scheduler.optimizer.param_groups[0]['lr']
-    current_lr = optimizer.param_groups[0]['lr']
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    swa_lr = swa_scheduler.optimizer.param_groups[0]['lr']
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tswaLR:{swa_lr}")
+    
+    with open(iCsv, mode="a", newline="") as file:
+        writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
+        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, swa_lr])
+    
     #scheduler.step(smoothed_val_loss)
-
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
