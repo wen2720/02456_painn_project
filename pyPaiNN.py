@@ -239,8 +239,8 @@ class Message(nn.Module):
         f_cut[rij_norm > rCut] = 0 
         return f_cut
 
-    def fRBF(self, rij_norm, rCut):
-        Trbf = torch.arange(1, self.nRbf + 1, device=rij_norm.device).float()
+    def fRBF(self, rij_norm, rCut, nRbf):
+        Trbf = torch.arange(1, nRbf + 1, device=rij_norm.device).float()
         rij_norm = rij_norm.unsqueeze(-1)  
         RBF = torch.sin(Trbf * torch.pi * rij_norm / rCut) / (rij_norm + 1e-8)
         return RBF
@@ -251,7 +251,7 @@ class Message(nn.Module):
 
         RBF = self.fRBF(rij_norm, self.rCut, self.nRbf)
         T_RBF = self.Lrbf(RBF)
-        Ws = T_RBF * self.fCut(rij_norm,5.0).unsqueeze(-1) 
+        Ws = T_RBF * self.fCut(rij_norm,self.rCut).unsqueeze(-1) 
 
         phi = self.Ls(sj)
         phiW = phi * Ws
@@ -306,7 +306,7 @@ class PaiNN(nn.Module):
     """
     def __init__(
         self, Lm, Lu,
-        num_message_passing_layers: int = 1,
+        num_message_passing_layers: int = 3,
         num_features: int = 128,
         num_outputs: int = 1,
         num_rbf_features: int = 20,
@@ -398,7 +398,7 @@ def cli(args: list = []):
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--weight_decay', default=1e-8, type=float)
+    parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -470,6 +470,11 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 print(args)
 print(painn)
 
+from torch.optim.swa_utils import AveragedModel, SWALR
+swa_model = AveragedModel(painn)
+swa_start_epoch = 3  # Start averaging after this epoch
+swa_scheduler = SWALR(optimizer, swa_lr=0.05)  # Set a higher learning rate for SWA phase
+
 painn.train()
 for epoch in range(args.num_epochs):
 
@@ -498,6 +503,7 @@ for epoch in range(args.num_epochs):
 
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
+
 
     # Validation Loop
     painn.eval()
@@ -539,9 +545,40 @@ for epoch in range(args.num_epochs):
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    scheduler.step(smoothed_val_loss)
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
     current_lr = scheduler.optimizer.param_groups[0]['lr']
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    scheduler.step(smoothed_val_loss)
+
+     # Update SWA model after specified epoch
+    if epoch >= swa_start_epoch:
+        swa_model.update_parameters(painn)
+
+    # Update SWA learning rate
+    if epoch >= swa_start_epoch:
+        swa_scheduler.step()
+    
+
+swa_mae = 0
+swa_model.eval()
+with torch.no_grad():
+    for batch in dm.test_dataloader():
+        batch = batch.to(device)
+
+        atomic_contributions = painn(
+            atoms=batch.z,
+            atom_positions=batch.pos,
+            graph_indexes=batch.batch,
+        )
+        preds = post_processing(
+            atoms=batch.z,
+            graph_indexes=batch.batch,
+            atomic_contributions=atomic_contributions,
+        )
+        swa_mae += F.l1_loss(preds, batch.y, reduction='sum')
+
+swa_mae /= len(dm.data_test)
+unit_conversion = dm.unit_conversion[args.target]
+print(f'swa Test MAE: {unit_conversion(swa_mae):.3f}')
 
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
@@ -566,6 +603,7 @@ with torch.no_grad():
 mae /= len(dm.data_test)
 unit_conversion = dm.unit_conversion[args.target]
 print(f'Test MAE: {unit_conversion(mae):.3f}')
+
 
 # Plot Training and Validation Metrics
 import matplotlib.pyplot as plt
