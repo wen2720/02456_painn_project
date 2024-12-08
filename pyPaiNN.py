@@ -467,7 +467,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 from torch.optim.swa_utils import SWALR, AveragedModel
 swa_start_epoch = 5
 swa_model = AveragedModel(painn)  # Model that will store averaged weights
-swa_scheduler = SWALR(optimizer, anneal_strategy='cos', anneal_epoch=swa_start_epoch)
+swa_scheduler = SWALR(optimizer, swa_lr=5e-4, anneal_strategy='cos', anneal_epochs=swa_start_epoch)
 
 
 painn.train()
@@ -499,7 +499,7 @@ for epoch in pbar:
         loss_epoch += loss_step.detach().item()
 
         if epoch >= swa_start_epoch:
-            swa_model.update_parameters(model)
+            swa_model.update_parameters(painn)
 
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
