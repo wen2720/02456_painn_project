@@ -311,20 +311,7 @@ class PaiNN(nn.Module):
         num_unique_atoms: int = 100,
         cutoff_dist: float = 5.0,
     ) -> None:
-        """
-        Args:
-            num_message_passing_layers: Number of message passing layers in
-                the PaiNN model.
-            num_features: Size of the node embeddings (scalar features) and
-                vector features.
-            num_outputs: Number of model outputs. In most cases 1.
-            num_rbf_features: Number of radial basis functions to represent
-                distances.
-            num_unique_atoms: Number of unique atoms in the data that we want
-                to learn embeddings for.
-            cutoff_dist: Euclidean distance threshold for determining whether 
-                two nodes (atoms) are neighbours.
-        """
+        
         super().__init__()
         #raise NotImplementedError
         self.num_message_passing_layers = num_message_passing_layers
@@ -396,7 +383,7 @@ def cli(args: list = []):
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--weight_decay', default=1e-2, type=float)
+    parser.add_argument('--weight_decay', default=1e-6, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -463,17 +450,20 @@ wait = 0
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
 )
+print(scheduler)
 
 from torch.optim.swa_utils import SWALR, AveragedModel
 swa_start_epoch = 5
 swa_model = AveragedModel(painn)  # Model that will store averaged weights
 swa_scheduler = SWALR(optimizer, swa_lr=5e-4, anneal_strategy='cos', anneal_epochs=swa_start_epoch)
 
+print(args)
+print(painn)
 
 painn.train()
-pbar = trange(args.num_epochs)
-for epoch in pbar:
-#for epoch in range(args.num_epochs):
+# pbar = trange(args.num_epochs)
+# for epoch in pbar:
+for epoch in range(args.num_epochs):
 
     loss_epoch = 0.
     for batch in dm.train_dataloader():
@@ -547,10 +537,12 @@ for epoch in pbar:
             break
 
     current_lr = scheduler.optimizer.param_groups[0]['lr']
-    pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    #pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
     scheduler.step(smoothed_val_loss)
-    #print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    
 
+torch.save(swa_model.state_dict(), "swa_painn.pth")
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
@@ -577,8 +569,8 @@ unit_conversion = dm.unit_conversion[args.target]
 print(f'Test MAE: {unit_conversion(mae):.3f}')
 
 
+swa_model.load_state_dict(torch.load("swa_painn.pth"))
 swa_mae = 0
-
 with torch.no_grad():
     for batch in dm.test_dataloader():
         batch = batch.to(device)
