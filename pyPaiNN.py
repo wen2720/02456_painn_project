@@ -223,7 +223,7 @@ from torch.nn import Linear, SiLU
 from torch_scatter import scatter_sum
 
 class Message(nn.Module):
-    def __init__(self, Ls=None, Lrbf=None, nRbf=20, nF=128):
+    def __init__(self, Ls=None, Lrbf=None, nRbf=20, nF=128, rCut=5.0):
         super(Message, self).__init__()
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(nF, nF),
@@ -231,23 +231,25 @@ class Message(nn.Module):
             Linear(nF, 3*nF),
         )
         self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
+        self.nRbf = nRbf
+        self.rCut = rCut
 
     def fCut(self, rij_norm, rCut):
         f_cut = 0.5 * (torch.cos(torch.pi * rij_norm / rCut) + 1)
         f_cut[rij_norm > rCut] = 0 
         return f_cut
 
-    def fRBF(self, rij_norm, rCut, nRbf=20):
-        Trbf = torch.arange(1, nRbf + 1, device=rij_norm.device).float()
+    def fRBF(self, rij_norm, rCut):
+        Trbf = torch.arange(1, self.nRbf + 1, device=rij_norm.device).float()
         rij_norm = rij_norm.unsqueeze(-1)  
         RBF = torch.sin(Trbf * torch.pi * rij_norm / rCut) / (rij_norm + 1e-8)
         return RBF
 
-    def forward(self, vj, sj, rij_vec, eij, rCut=5.0, nRbf=20):
+    def forward(self, vj, sj, rij_vec, eij):
         rij_norm = torch.norm(rij_vec, dim=-1)
         rij_hat =  rij_vec / (rij_norm.unsqueeze(-1) + 1e-8)
 
-        RBF = self.fRBF(rij_norm, rCut, nRbf)
+        RBF = self.fRBF(rij_norm, self.rCut, self.nRbf)
         T_RBF = self.Lrbf(RBF)
         Ws = T_RBF * self.fCut(rij_norm,5.0).unsqueeze(-1) 
 
@@ -311,7 +313,20 @@ class PaiNN(nn.Module):
         num_unique_atoms: int = 100,
         cutoff_dist: float = 5.0,
     ) -> None:
-        
+        """
+        Args:
+            num_message_passing_layers: Number of message passing layers in
+                the PaiNN model.
+            num_features: Size of the node embeddings (scalar features) and
+                vector features.
+            num_outputs: Number of model outputs. In most cases 1.
+            num_rbf_features: Number of radial basis functions to represent
+                distances.
+            num_unique_atoms: Number of unique atoms in the data that we want
+                to learn embeddings for.
+            cutoff_dist: Euclidean distance threshold for determining whether 
+                two nodes (atoms) are neighbours.
+        """
         super().__init__()
         #raise NotImplementedError
         self.num_message_passing_layers = num_message_passing_layers
@@ -383,7 +398,7 @@ def cli(args: list = []):
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--weight_decay', default=1e-6, type=float)
+    parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -439,6 +454,7 @@ optimizer = torch.optim.AdamW(
 )
 
 
+
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
@@ -450,19 +466,11 @@ wait = 0
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
 )
-print(scheduler)
-
-from torch.optim.swa_utils import SWALR, AveragedModel
-swa_start_epoch = 5
-swa_model = AveragedModel(painn)  # Model that will store averaged weights
-swa_scheduler = SWALR(optimizer, swa_lr=5e-4, anneal_strategy='cos', anneal_epochs=swa_start_epoch)
 
 print(args)
 print(painn)
 
 painn.train()
-# pbar = trange(args.num_epochs)
-# for epoch in pbar:
 for epoch in range(args.num_epochs):
 
     loss_epoch = 0.
@@ -488,14 +496,8 @@ for epoch in range(args.num_epochs):
 
         loss_epoch += loss_step.detach().item()
 
-        if epoch >= swa_start_epoch:
-            swa_model.update_parameters(painn)
-
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
-
-    if epoch >= swa_start_epoch:
-        swa_scheduler.step()
 
     # Validation Loop
     painn.eval()
@@ -514,8 +516,9 @@ for epoch in range(args.num_epochs):
                 graph_indexes=batch.batch,
                 atomic_contributions=atomic_contributions,
             )
-            val_loss_step = F.mse_loss(preds, batch.y, reduction='sum')
-            val_loss_epoch += val_loss_step.item()
+            loss_step = F.mse_loss(preds, batch.y, reduction='sum')
+
+            val_loss_epoch += loss_step.item()
 
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
@@ -536,13 +539,10 @@ for epoch in range(args.num_epochs):
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    current_lr = scheduler.optimizer.param_groups[0]['lr']
-    #pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
     scheduler.step(smoothed_val_loss)
-    
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    current_lr = scheduler.optimizer.param_groups[0]['lr']
 
-torch.save(swa_model.state_dict(), "swa_painn.pth")
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
@@ -564,38 +564,8 @@ with torch.no_grad():
         mae += F.l1_loss(preds, batch.y, reduction='sum')
 
 mae /= len(dm.data_test)
-
 unit_conversion = dm.unit_conversion[args.target]
 print(f'Test MAE: {unit_conversion(mae):.3f}')
-
-
-swa_model.load_state_dict(torch.load("swa_painn.pth"))
-swa_mae = 0
-with torch.no_grad():
-    for batch in dm.test_dataloader():
-        batch = batch.to(device)
-
-        # Use SWA model for prediction
-        atomic_contributions = swa_model(
-            atoms=batch.z,
-            atom_positions=batch.pos,
-            graph_indexes=batch.batch,
-        )
-        preds = post_processing(
-            atoms=batch.z,
-            graph_indexes=batch.batch,
-            atomic_contributions=atomic_contributions,
-        )
-        # Accumulate the sum of L1 loss
-        swa_mae += F.l1_loss(preds, batch.y, reduction='sum').item()
-
-# Compute the average MAE by dividing by the total test dataset size
-swa_mae /= len(dm.data_test)
-
-# Convert to desired units
-unit_conversion = dm.unit_conversion[args.target]
-print(f'Test MAE (SWA): {unit_conversion(swa_mae):.3f}')
-
 
 # Plot Training and Validation Metrics
 import matplotlib.pyplot as plt
