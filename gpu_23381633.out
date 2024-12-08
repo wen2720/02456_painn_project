@@ -1,0 +1,84 @@
+Sun Dec  8 13:33:19 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:D8:00.0 Off |                    0 |
+| N/A   26C    P0             25W /  250W |       1MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+cuda
+Tesla V100-PCIE-32GB
+Namespace(seed=0, target=7, data_dir='data/', batch_size_train=100, batch_size_inference=1000, num_workers=0, splits=[110000, 10000, 10831], subset_size=None, num_message_passing_layers=3, num_features=128, num_outputs=1, num_rbf_features=20, num_unique_atoms=100, cutoff_dist=5.0, lr=0.0005, weight_decay=0.0001, num_epochs=1000)
+PaiNN(
+  (zi): Embedding(100, 128)
+  (Lm): Message(
+    (Ls): Sequential(
+      (0): Linear(in_features=128, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+    (Lrbf): Linear(in_features=20, out_features=384, bias=True)
+  )
+  (Lu): Update(
+    (Luu): Linear(in_features=3, out_features=3, bias=False)
+    (Luv): Linear(in_features=3, out_features=3, bias=False)
+    (Ls): Sequential(
+      (0): Linear(in_features=256, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+  )
+  (Lr): Sequential(
+    (0): Linear(in_features=128, out_features=64, bias=True)
+    (1): SiLU()
+    (2): Linear(in_features=64, out_features=1, bias=True)
+  )
+)
+Epoch: 1	TL: 2.689e-01	VL: 5.257e-02	LR:0.0005
+Epoch: 2	TL: 3.542e-02	VL: 1.864e-02	LR:0.0005
+Epoch: 3	TL: 2.024e-02	VL: 1.566e-02	LR:0.0005
+Epoch: 4	TL: 1.436e-02	VL: 9.043e-03	LR:0.0005
+Epoch: 5	TL: 3.715e-01	VL: 4.797e-02	LR:0.0017113512216949502
+Epoch: 6	TL: 7.499e+24	VL: 7.231e+24	LR:0.005226829389220051
+Epoch: 7	TL: 6.329e+24	VL: 5.529e+24	LR:0.010702315005761291
+Epoch: 8	TL: 4.472e+24	VL: 3.530e+24	LR:0.01760182938922005
+Epoch: 9	TL: 2.623e+24	VL: 1.883e+24	LR:0.025249999999999998
+Epoch: 10	TL: 1.250e+24	VL: 4.738e+25	LR:0.03289817061077995
+Epoch: 11	TL: 3.442e+24	VL: 1.118e+27	LR:0.029984772818421393
+Epoch: 12	TL: 3.563e+24	VL: 9.554e+26	LR:0.040726755249139455
+Epoch: 13	TL: 3.720e+24	VL: 7.408e+26	LR:0.047623532513432924
+Epoch: 14	TL: 3.868e+24	VL: 5.433e+26	LR:0.05
+Epoch: 15	TL: 3.875e+24	VL: 3.788e+26	LR:0.05
+Epoch: 16	TL: 3.354e+24	VL: 2.190e+26	LR:0.05
+Epoch: 17	TL: 3.107e+24	VL: 9.987e+25	LR:0.05
+Epoch: 18	TL: 2.527e+24	VL: 3.426e+25	LR:0.05
+Epoch: 19	TL: 2.018e+24	VL: 6.273e+24	LR:0.05
+Epoch: 20	TL: 1.737e+24	VL: 4.803e+24	LR:0.05
+Epoch: 21	TL: 1.272e+24	VL: 4.574e+24	LR:0.05
+Epoch: 22	TL: 9.014e+23	VL: 4.061e+24	LR:0.05
+Epoch: 23	TL: 6.724e+23	VL: 3.407e+24	LR:0.05
+Epoch: 24	TL: 6.106e+23	VL: 2.697e+24	LR:0.05
+Epoch: 25	TL: 3.740e+23	VL: 2.081e+24	LR:0.05
+Epoch: 26	TL: 2.525e+23	VL: 1.557e+24	LR:0.05
+Epoch: 27	TL: 2.062e+23	VL: 1.128e+24	LR:0.05
+Epoch: 28	TL: 1.322e+23	VL: 7.500e+23	LR:0.05
+Epoch: 29	TL: 9.224e+22	VL: 3.775e+23	LR:0.05
+Epoch: 30	TL: 7.112e+22	VL: 1.801e+23	LR:0.05
+Epoch: 31	TL: 4.251e+22	VL: 8.967e+22	LR:0.05
+Epoch: 32	TL: 2.903e+22	VL: 4.454e+22	LR:0.05
+Epoch: 33	TL: 1.896e+22	VL: 2.101e+22	LR:0.05
+Early stopping triggered after 34 epochs.
+swa Test MAE: 2221219512320.000
+Test MAE: 69.579
