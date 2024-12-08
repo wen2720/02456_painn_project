@@ -1,0 +1,169 @@
+Sun Dec  8 09:57:51 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:D8:00.0 Off |                    0 |
+| N/A   26C    P0             24W /  250W |       1MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+cuda
+Tesla V100-PCIE-32GB
+<torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7fbffe04dab0>
+Namespace(seed=0, target=7, data_dir='data/', batch_size_train=100, batch_size_inference=1000, num_workers=0, splits=[110000, 10000, 10831], subset_size=None, num_message_passing_layers=3, num_features=128, num_outputs=1, num_rbf_features=20, num_unique_atoms=100, cutoff_dist=5.0, lr=0.0005, weight_decay=1e-06, num_epochs=1000)
+PaiNN(
+  (zi): Embedding(100, 128)
+  (Lm): Message(
+    (Ls): Sequential(
+      (0): Linear(in_features=128, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+    (Lrbf): Linear(in_features=20, out_features=384, bias=True)
+  )
+  (Lu): Update(
+    (Luu): Linear(in_features=3, out_features=3, bias=False)
+    (Luv): Linear(in_features=3, out_features=3, bias=False)
+    (Ls): Sequential(
+      (0): Linear(in_features=256, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+  )
+  (Lr): Sequential(
+    (0): Linear(in_features=128, out_features=64, bias=True)
+    (1): SiLU()
+    (2): Linear(in_features=64, out_features=1, bias=True)
+  )
+)
+Epoch: 1	TL: 2.689e-01	VL: 5.233e-02	LR:0.0005
+Epoch: 2	TL: 3.543e-02	VL: 1.874e-02	LR:0.0005
+Epoch: 3	TL: 2.025e-02	VL: 1.554e-02	LR:0.0005
+Epoch: 4	TL: 1.435e-02	VL: 9.004e-03	LR:0.0005
+Epoch: 5	TL: 1.249e-02	VL: 1.229e-02	LR:0.0005
+Epoch: 6	TL: 1.169e-02	VL: 7.844e-03	LR:0.0005
+Epoch: 7	TL: 9.927e-03	VL: 8.227e-03	LR:0.0005
+Epoch: 8	TL: 9.646e-03	VL: 7.251e-03	LR:0.0005
+Epoch: 9	TL: 8.250e-03	VL: 1.130e-02	LR:0.0005
+Epoch: 10	TL: 7.234e-03	VL: 6.501e-03	LR:0.0005
+Epoch: 11	TL: 6.964e-03	VL: 4.729e-03	LR:0.0005
+Epoch: 12	TL: 6.855e-03	VL: 8.221e-03	LR:0.0005
+Epoch: 13	TL: 5.869e-03	VL: 6.590e-03	LR:0.0005
+Epoch: 14	TL: 6.070e-03	VL: 5.393e-03	LR:0.0005
+Epoch: 15	TL: 5.250e-03	VL: 7.723e-03	LR:0.0005
+Epoch: 16	TL: 5.080e-03	VL: 5.028e-03	LR:0.0005
+Epoch: 17	TL: 5.002e-03	VL: 6.633e-03	LR:0.0005
+Epoch: 18	TL: 2.447e-03	VL: 2.855e-03	LR:0.0005
+Epoch: 19	TL: 5.291e-03	VL: 3.174e-03	LR:0.0005
+Epoch: 20	TL: 4.011e-03	VL: 6.421e-03	LR:0.0005
+Epoch: 21	TL: 4.311e-03	VL: 4.288e-03	LR:0.0005
+Epoch: 22	TL: 4.025e-03	VL: 2.521e-03	LR:0.0005
+Epoch: 23	TL: 3.935e-03	VL: 4.118e-03	LR:0.0005
+Epoch: 24	TL: 3.505e-03	VL: 4.094e-03	LR:0.0005
+Epoch: 25	TL: 3.655e-03	VL: 3.048e-03	LR:0.0005
+Epoch: 26	TL: 3.392e-03	VL: 8.841e-03	LR:0.0005
+Epoch: 27	TL: 3.088e-03	VL: 2.931e-03	LR:0.0005
+Epoch: 28	TL: 3.201e-03	VL: 2.697e-03	LR:0.0005
+Epoch: 29	TL: 1.494e-03	VL: 2.640e-03	LR:0.0005
+Epoch: 30	TL: 3.702e-03	VL: 6.161e-03	LR:0.0005
+Epoch: 31	TL: 3.021e-03	VL: 2.966e-03	LR:0.0005
+Epoch: 32	TL: 2.987e-03	VL: 2.889e-03	LR:0.0005
+Epoch: 33	TL: 2.884e-03	VL: 3.460e-03	LR:0.0005
+Epoch: 34	TL: 2.528e-03	VL: 2.602e-03	LR:0.0005
+Epoch: 35	TL: 2.601e-03	VL: 4.384e-03	LR:0.0005
+Epoch: 36	TL: 1.179e-03	VL: 1.398e-03	LR:0.0005
+Epoch: 37	TL: 3.444e-03	VL: 4.164e-03	LR:0.0005
+Epoch: 38	TL: 2.421e-03	VL: 2.636e-03	LR:0.0005
+Epoch: 39	TL: 2.424e-03	VL: 2.670e-03	LR:0.0005
+Epoch: 40	TL: 2.358e-03	VL: 2.149e-03	LR:0.0005
+Epoch: 41	TL: 2.352e-03	VL: 2.074e-03	LR:0.0005
+Epoch: 42	TL: 2.292e-03	VL: 1.973e-03	LR:0.0005
+Epoch: 43	TL: 1.001e-03	VL: 1.585e-03	LR:0.0005
+Epoch: 44	TL: 2.793e-03	VL: 2.424e-03	LR:0.0005
+Epoch: 45	TL: 2.247e-03	VL: 2.000e-03	LR:0.0005
+Epoch: 46	TL: 1.894e-03	VL: 1.690e-03	LR:0.0005
+Epoch: 47	TL: 2.177e-03	VL: 1.547e-03	LR:0.0005
+Epoch: 48	TL: 2.006e-03	VL: 1.739e-03	LR:0.0005
+Epoch: 49	TL: 2.049e-03	VL: 1.515e-03	LR:0.0005
+Epoch: 50	TL: 1.904e-03	VL: 1.794e-03	LR:0.0005
+Epoch: 51	TL: 1.833e-03	VL: 3.139e-03	LR:0.0005
+Epoch: 52	TL: 1.917e-03	VL: 2.996e-03	LR:0.0005
+Epoch: 53	TL: 1.850e-03	VL: 4.046e-03	LR:0.0005
+Epoch: 54	TL: 1.864e-03	VL: 1.471e-03	LR:0.0005
+Epoch: 55	TL: 1.794e-03	VL: 2.084e-03	LR:0.0005
+Epoch: 56	TL: 7.795e-04	VL: 1.613e-03	LR:0.0005
+Epoch: 57	TL: 2.337e-03	VL: 1.862e-03	LR:0.0005
+Epoch: 58	TL: 1.632e-03	VL: 1.891e-03	LR:0.0005
+Epoch: 59	TL: 1.784e-03	VL: 1.547e-03	LR:0.0005
+Epoch: 60	TL: 1.687e-03	VL: 1.705e-03	LR:0.0005
+Epoch: 61	TL: 1.596e-03	VL: 1.646e-03	LR:0.0005
+Epoch: 62	TL: 6.767e-04	VL: 1.163e-03	LR:0.0005
+Epoch: 63	TL: 2.036e-03	VL: 2.990e-03	LR:0.0005
+Epoch: 64	TL: 1.598e-03	VL: 1.526e-03	LR:0.0005
+Epoch: 65	TL: 1.736e-03	VL: 2.114e-03	LR:0.0005
+Epoch: 66	TL: 1.811e-03	VL: 2.185e-03	LR:0.0005
+Epoch: 67	TL: 1.642e-03	VL: 1.637e-03	LR:0.0005
+Epoch: 68	TL: 1.610e-03	VL: 1.651e-03	LR:0.0005
+Epoch: 69	TL: 6.116e-04	VL: 1.392e-03	LR:0.0005
+Epoch: 70	TL: 1.857e-03	VL: 1.929e-03	LR:0.0005
+Epoch: 71	TL: 1.595e-03	VL: 1.539e-03	LR:0.0005
+Epoch: 72	TL: 1.456e-03	VL: 3.111e-03	LR:0.0005
+Epoch: 73	TL: 1.370e-03	VL: 1.886e-03	LR:0.0005
+Epoch: 74	TL: 1.584e-03	VL: 1.314e-03	LR:0.0005
+Epoch: 75	TL: 5.593e-04	VL: 1.065e-03	LR:0.0005
+Epoch: 76	TL: 1.848e-03	VL: 1.944e-03	LR:0.0005
+Epoch: 77	TL: 1.465e-03	VL: 1.546e-03	LR:0.0005
+Epoch: 78	TL: 1.349e-03	VL: 2.222e-03	LR:0.0005
+Epoch: 79	TL: 1.474e-03	VL: 2.021e-03	LR:0.0005
+Epoch: 80	TL: 1.392e-03	VL: 1.765e-03	LR:0.0005
+Epoch: 81	TL: 1.381e-03	VL: 1.625e-03	LR:0.0005
+Epoch: 82	TL: 5.384e-04	VL: 1.046e-03	LR:0.0005
+Epoch: 83	TL: 1.697e-03	VL: 1.807e-03	LR:0.0005
+Epoch: 84	TL: 1.309e-03	VL: 1.126e-03	LR:0.0005
+Epoch: 85	TL: 1.325e-03	VL: 1.424e-03	LR:0.0005
+Epoch: 86	TL: 1.263e-03	VL: 2.033e-03	LR:0.0005
+Epoch: 87	TL: 1.321e-03	VL: 1.197e-03	LR:0.0005
+Epoch: 88	TL: 4.981e-04	VL: 9.516e-04	LR:0.0005
+Epoch: 89	TL: 1.528e-03	VL: 1.598e-03	LR:0.0005
+Epoch: 90	TL: 1.392e-03	VL: 1.383e-03	LR:0.0005
+Epoch: 91	TL: 1.175e-03	VL: 2.342e-03	LR:0.0005
+Epoch: 92	TL: 1.210e-03	VL: 1.177e-03	LR:0.0005
+Epoch: 93	TL: 1.239e-03	VL: 1.891e-03	LR:0.0005
+Epoch: 94	TL: 1.264e-03	VL: 1.068e-03	LR:0.0005
+Epoch: 95	TL: 4.686e-04	VL: 1.017e-03	LR:0.0005
+Epoch: 96	TL: 1.613e-03	VL: 1.203e-03	LR:0.0005
+Epoch: 97	TL: 1.118e-03	VL: 1.508e-03	LR:0.0005
+Epoch: 98	TL: 1.270e-03	VL: 2.509e-03	LR:0.0005
+Epoch: 99	TL: 1.095e-03	VL: 1.438e-03	LR:0.0005
+Epoch: 100	TL: 1.213e-03	VL: 1.315e-03	LR:0.0005
+Epoch: 101	TL: 4.574e-04	VL: 1.011e-03	LR:0.0005
+Epoch: 102	TL: 1.519e-03	VL: 1.827e-03	LR:0.0005
+Epoch: 103	TL: 1.085e-03	VL: 2.268e-03	LR:0.0005
+Epoch: 104	TL: 1.121e-03	VL: 1.482e-03	LR:0.0005
+Epoch: 105	TL: 1.158e-03	VL: 1.558e-03	LR:0.0005
+Epoch: 106	TL: 1.173e-03	VL: 1.259e-03	LR:0.0005
+Epoch: 107	TL: 4.295e-04	VL: 9.742e-04	LR:0.0005
+Epoch: 108	TL: 1.496e-03	VL: 1.749e-03	LR:0.0005
+Epoch: 109	TL: 1.152e-03	VL: 3.344e-03	LR:0.0005
+Epoch: 110	TL: 1.009e-03	VL: 1.879e-03	LR:0.0005
+Epoch: 111	TL: 1.050e-03	VL: 1.795e-03	LR:0.0005
+Epoch: 112	TL: 1.157e-03	VL: 3.965e-03	LR:0.0005
+Epoch: 113	TL: 4.361e-04	VL: 8.327e-04	LR:0.0005
+Epoch: 114	TL: 1.280e-03	VL: 1.381e-03	LR:0.0005
+Epoch: 115	TL: 1.069e-03	VL: 1.292e-03	LR:0.0005
+Epoch: 116	TL: 1.128e-03	VL: 1.195e-03	LR:0.0005
+Epoch: 117	TL: 1.026e-03	VL: 2.181e-03	LR:0.0005
+Early stopping triggered after 118 epochs.
+Test MAE: 18.967
+Test MAE (SWA): 221.917
