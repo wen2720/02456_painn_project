@@ -473,9 +473,9 @@ with open(iCsv, mode="w", newline="") as file:
     writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "Adam LR"])
 
 painn.train()
-pbar = trange(args.num_epochs)
-for epoch in pbar:
-#for epoch in range(args.num_epochs):
+# pbar = trange(args.num_epochs)
+# for epoch in pbar:
+for epoch in range(args.num_epochs):
 
     loss_epoch = 0.
     for batch in dm.train_dataloader():
@@ -544,8 +544,8 @@ for epoch in pbar:
             break
 
     adam_lr = scheduler.optimizer.param_groups[0]['lr']
-    pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{adam_lr}")
-    #print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t sgdLR:{adam_lr}")
+    #pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{adam_lr}")
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t sgdLR:{adam_lr}")
     
     with open(iCsv, mode="a", newline="") as file:
         writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
