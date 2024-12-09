@@ -561,7 +561,7 @@ for epoch in range(args.num_epochs):
     if scheduler.num_bad_epochs >= plateau_patience and swa_start_epoch is None:
         swa_start_epoch=epoch
         print(f"SWA starts at epoch {epoch}")
-        sgd_opt = torch.optim.SGD(painn.parameters(), lr=sgd_lr)  # Adjust learning rate
+        optimizer = torch.optim.SGD(painn.parameters(), lr=sgd_lr, momentum=0.9)  # Adjust learning rate
         swa_scheduler = SWALR(optimizer, swa_lr=sgd_lr)
 
     if swa_start_epoch is not None:
