@@ -472,8 +472,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 )
 
 swa_model = AveragedModel(painn)
-sgd_opt = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9)
-swa_scheduler = SWALR(sgd_opt, swa_lr=args.lr)
+swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
 #swa_scheduler = None
 swa_start_epoch = None
 print(args)
@@ -556,18 +555,22 @@ for epoch in range(args.num_epochs):
 
     scheduler.step(smoothed_val_loss)
 
+    sgd_lr = scheduler.optimizer.param_groups[0]['lr']
+    
+
     if scheduler.num_bad_epochs >= plateau_patience and swa_start_epoch is None:
         swa_start_epoch=epoch
         print(f"SWA starts at epoch {epoch}")
-        sgd_opt = torch.optim.SGD(painn.parameters(), lr=5e-4)  # Adjust learning rate
-        swa_scheduler = SWALR(sgd_opt, swa_lr=5e-4)
+        sgd_opt = torch.optim.SGD(painn.parameters(), lr=sgd_lr)  # Adjust learning rate
+        swa_scheduler = SWALR(optimizer, swa_lr=sgd_lr)
 
     if swa_start_epoch is not None:
         swa_model.update_parameters(painn)
         swa_scheduler.step()
-        
-    sgd_lr = scheduler.optimizer.param_groups[0]['lr']
+
     swa_lr = swa_scheduler.optimizer.param_groups[0]['lr']
+        
+
 
     print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tswaLR:{swa_lr}, sgdLR{sgd_lr}")
     
