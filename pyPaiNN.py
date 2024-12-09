@@ -460,22 +460,22 @@ optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9)
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 2  # Number of epochs to wait before stopping
+patience = 30  # Number of epochs to wait before stopping
+
+
 
 smoothed_val_loss = None
 smoothing_factor = 0.9
 wait = 0
 
-plateau_patience = 2
+plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-4
+    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-7
 )
-
 
 swa_model = AveragedModel(painn)
 swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
-#swa_scheduler = None
-swa_start_epoch = None
+
 print(args)
 print(painn)
 
@@ -484,21 +484,11 @@ iCsv = "training_log.csv"
 
 with open(iCsv, mode="w", newline="") as file:
     writer = csv.writer(file)  
-    writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "SWA LR", "SGD LR"])
+    writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "current_lr"])
 
+painn.train()
+for epoch in range(args.num_epochs):        
 
-for epoch in range(args.num_epochs):
-    
-    if scheduler.num_bad_epochs >= plateau_patience:
-        sgd_lr = scheduler.optimizer.param_groups[0]['lr']
-        swa_start_epoch=epoch
-        print(f"SWA starts at epoch {epoch} and its lf{sgd_lr}")
-        optimizer = torch.optim.SGD(painn.parameters(), lr=sgd_lr, momentum=0.9)  # Adjust learning rate
-        swa_scheduler = SWALR(optimizer, swa_lr=sgd_lr)
-        swa_model.update_parameters(painn)
-        
-
-    painn.train()
     loss_epoch = 0.
     for batch in dm.train_dataloader():
         batch = batch.to(device)
@@ -519,6 +509,7 @@ for epoch in range(args.num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        swa_scheduler.step()
 
         loss_epoch += loss_step.detach().item()
 
@@ -547,44 +538,36 @@ for epoch in range(args.num_epochs):
 
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
+    
 
     if smoothed_val_loss is None:
         smoothed_val_loss = val_loss_epoch
     else:
         smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
+    current_lr = optimizer.param_groups[0]['lr']
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e} current_lr{current_lr}")
+    with open(iCsv, mode="a", newline="") as file:
+        writer = csv.writer(file)  
+        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
+    
     # Early Stopping
     if smoothed_val_loss < best_val_loss:
         best_val_loss = smoothed_val_loss
-        wait = 0  # Reset the patience counter
-        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
+        wait = 0  
+        torch.save(painn.state_dict(), "better_painn.pth")
     else:
         wait += 1
         if wait >= patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    
-    if scheduler.num_bad_epochs >= plateau_patience:
-        swa_model.update_parameters(painn)  
-        swa_scheduler.step()  
+    if epoch >= 400:
+        swa_model.update_parameters(painn)
+        swa_scheduler.step()
     else:
         scheduler.step(smoothed_val_loss)
 
-    sgd_lr = scheduler.optimizer.param_groups[0]['lr']
-    swa_lr = swa_scheduler.optimizer.param_groups[0]['lr']
-        
-
-
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tswaLR:{swa_lr}, sgdLR{sgd_lr}")
-    
-    with open(iCsv, mode="a", newline="") as file:
-        writer = csv.writer(file)  # Use tab as the delimiter
-        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, swa_lr, sgd_lr])
-    
-    if wait >= patience:
-        print(f"Early stopping triggered after {epoch + 1} epochs.")
-        break
     
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
