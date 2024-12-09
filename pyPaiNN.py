@@ -465,8 +465,17 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode="min", factor=0.5, patience=5, threshold=1e-8
 )
 
+import csv
+iCsv = "training_log.tsv"
+
+with open(iCsv, mode="w", newline="") as file:
+    writer = csv.writer(file, delimiter="\t")  
+    writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "Adam LR"])
+
 painn.train()
-for epoch in range(args.num_epochs):
+pbar = trange(args.num_epochs)
+for epoch in pbar:
+#for epoch in range(args.num_epochs):
 
     loss_epoch = 0.
     for batch in dm.train_dataloader():
@@ -534,10 +543,15 @@ for epoch in range(args.num_epochs):
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    scheduler.step(smoothed_val_loss)
-    current_lr = scheduler.optimizer.param_groups[0]['lr']
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{current_lr}")
+    adam_lr = scheduler.optimizer.param_groups[0]['lr']
+    pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{adam_lr}")
+    #print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t sgdLR:{adam_lr}")
+    
+    with open(iCsv, mode="a", newline="") as file:
+        writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
+        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, adam_lr])
 
+    scheduler.step(smoothed_val_loss)
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
