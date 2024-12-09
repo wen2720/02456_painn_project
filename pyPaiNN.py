@@ -306,7 +306,7 @@ class PaiNN(nn.Module):
     """
     def __init__(
         self, Lm, Lu,
-        num_message_passing_layers: int = 1,
+        num_message_passing_layers: int = 3,
         num_features: int = 128,
         num_outputs: int = 1,
         num_rbf_features: int = 20,
@@ -398,7 +398,7 @@ def cli(args: list = []):
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--weight_decay', default=1e-4, type=float)
+    parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -466,12 +466,16 @@ smoothed_val_loss = None
 smoothing_factor = 0.9
 wait = 0
 
-# scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-#     optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
-# )
+plateau_patience = 5
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-4
+)
+
+
 swa_model = AveragedModel(painn)
 swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
-swa_start = 15
+#swa_scheduler = None
+swa_start_epoch = None
 print(args)
 print(painn)
 
@@ -480,7 +484,7 @@ iCsv = "training_log.tsv"
 
 with open(iCsv, mode="w", newline="") as file:
     writer = csv.writer(file, delimiter="\t")  
-    writer.writerow(["Epoch", "Training loss", "Validation loss", "Learning Rate"])
+    writer.writerow(["Epoch", "Training loss", "Validation loss", "SWA LR", "SGD LR"])
 
 
 for epoch in range(args.num_epochs):
@@ -512,9 +516,9 @@ for epoch in range(args.num_epochs):
     train_losses.append(loss_epoch)
 
 
-    if epoch >= swa_start:
-        swa_model.update_parameters(painn)  
-        swa_scheduler.step()  
+    # if epoch >= swa_start:
+    #     swa_model.update_parameters(painn)  
+    #     swa_scheduler.step()  
 
     # Validation Loop
     painn.eval()
@@ -552,18 +556,35 @@ for epoch in range(args.num_epochs):
         torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
-        if wait >= patience:
-            print(f"Early stopping triggered after {epoch + 1} epochs.")
-            break
+        # if wait >= patience:
+        #     print(f"Early stopping triggered after {epoch + 1} epochs.")
+        #     break
 
+    scheduler.step(smoothed_val_loss)
+
+    if scheduler.num_bad_epochs >= plateau_patience and swa_start_epoch is None:
+        swa_start_epoch=epoch
+        print(f"SWA starts at epoch {epoch}")
+        optimizer = torch.optim.SGD(painn.parameters(), lr=5e-4)  # Adjust learning rate
+        swa_scheduler = SWALR(optimizer, swa_lr=5e-4)
+
+    if swa_start_epoch is not None:
+        swa_model.update_parameters(painn)
+        swa_scheduler.step()
+        
+    sgd_lr = scheduler.optimizer.param_groups[0]['lr']
     swa_lr = swa_scheduler.optimizer.param_groups[0]['lr']
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tswaLR:{swa_lr}")
+
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tswaLR:{swa_lr}, sgdLR{sgd_lr}")
     
     with open(iCsv, mode="a", newline="") as file:
         writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
-        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, swa_lr])
+        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, swa_lr, sgd_lr])
     
-    #scheduler.step(smoothed_val_loss)
+    if wait >= patience:
+        print(f"Early stopping triggered after {epoch + 1} epochs.")
+        break
+    
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
