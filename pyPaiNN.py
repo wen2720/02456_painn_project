@@ -471,9 +471,9 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-4
 )
 
-
 swa_model = AveragedModel(painn)
-swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
+sgd_opt = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9)
+swa_scheduler = SWALR(sgd_opt, swa_lr=args.lr)
 #swa_scheduler = None
 swa_start_epoch = None
 print(args)
@@ -515,12 +515,6 @@ for epoch in range(args.num_epochs):
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
 
-
-    # if epoch >= swa_start:
-    #     swa_model.update_parameters(painn)  
-    #     swa_scheduler.step()  
-
-    # Validation Loop
     painn.eval()
     val_loss_epoch = 0.0
     with torch.no_grad():
@@ -565,8 +559,8 @@ for epoch in range(args.num_epochs):
     if scheduler.num_bad_epochs >= plateau_patience and swa_start_epoch is None:
         swa_start_epoch=epoch
         print(f"SWA starts at epoch {epoch}")
-        optimizer = torch.optim.SGD(painn.parameters(), lr=5e-4)  # Adjust learning rate
-        swa_scheduler = SWALR(optimizer, swa_lr=5e-4)
+        sgd_opt = torch.optim.SGD(painn.parameters(), lr=5e-4)  # Adjust learning rate
+        swa_scheduler = SWALR(sgd_opt, swa_lr=5e-4)
 
     if swa_start_epoch is not None:
         swa_model.update_parameters(painn)
