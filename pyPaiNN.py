@@ -394,7 +394,7 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=1e-7, type=float)
+    parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
     parser.add_argument('--weight_decay', default=1e-10, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
@@ -462,7 +462,7 @@ smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-8
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-9
 )
 
 import csv
