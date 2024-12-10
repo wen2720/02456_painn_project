@@ -396,8 +396,7 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=5e-4, type=float)
-    #parser.add_argument('--weight_decay', default=0.01, type=float)
+    parser.add_argument('--lr', default=1e-8, type=float)
     parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
@@ -470,7 +469,7 @@ wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-7
+    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-10
 )
 
 swa_model = AveragedModel(painn)
@@ -563,6 +562,7 @@ for epoch in range(args.num_epochs):
             break
 
     if epoch >= 400:
+        print(f"SWA: triggered after {epoch + 1} epochs.")
         swa_model.update_parameters(painn)
         swa_scheduler.step()
     else:
