@@ -545,7 +545,7 @@ for epoch in range(args.num_epochs):
 
     adam_lr = scheduler.optimizer.param_groups[0]['lr']
     #pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{adam_lr}")
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t sgdLR:{adam_lr}")
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t adam_lr:{adam_lr}")
     
     with open(iCsv, mode="a", newline="") as file:
         writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
