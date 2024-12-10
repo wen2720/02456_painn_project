@@ -394,9 +394,9 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=5e-4, type=float)
+    parser.add_argument('--lr', default=1e-7, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--weight_decay', default=1e-8, type=float)
+    parser.add_argument('--weight_decay', default=1e-10, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
