@@ -539,7 +539,7 @@ for epoch in range(args.num_epochs):
         smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
     current_lr = optimizer.param_groups[0]['lr']
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e} current_lr{current_lr}")
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tsmoothed_val_loss: {smoothed_val_loss} current_lr{current_lr}")
     with open(iCsv, mode="a", newline="") as file:
         writer = csv.writer(file)  
         writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
@@ -555,7 +555,7 @@ for epoch in range(args.num_epochs):
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    if epoch >= 400:
+    if epoch >= 140:
         print(f"SWA: triggered after {epoch + 1} epochs.")
         swa_model.update_parameters(painn)
         swa_scheduler.step()
