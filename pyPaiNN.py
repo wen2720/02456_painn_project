@@ -463,7 +463,7 @@ wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-10
+    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-4
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
