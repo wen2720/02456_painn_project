@@ -1,0 +1,252 @@
+Wed Dec 11 20:47:38 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:58:00.0 Off |                    0 |
+| N/A   34C    P0             25W /  250W |       1MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+cuda
+Tesla V100-PCIE-32GB
+Namespace(seed=0, target=7, data_dir='data/', batch_size_train=100, batch_size_inference=1000, num_workers=0, splits=[110000, 10000, 10831], subset_size=None, num_message_passing_layers=3, num_features=128, num_outputs=1, num_rbf_features=20, num_unique_atoms=100, cutoff_dist=5.0, lr=0.0005, weight_decay=1e-08, num_epochs=1000)
+PaiNN(
+  (zi): Embedding(100, 128)
+  (Lm): Message(
+    (Ls): Sequential(
+      (0): Linear(in_features=128, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+    (Lrbf): Linear(in_features=20, out_features=384, bias=True)
+  )
+  (Lu): Update(
+    (Luu): Linear(in_features=3, out_features=3, bias=False)
+    (Luv): Linear(in_features=3, out_features=3, bias=False)
+    (Ls): Sequential(
+      (0): Linear(in_features=256, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+  )
+  (Lr): Sequential(
+    (0): Linear(in_features=128, out_features=64, bias=True)
+    (1): SiLU()
+    (2): Linear(in_features=64, out_features=1, bias=True)
+  )
+)
+Epoch: 1	TL: 2.689e-01	VL: 5.233e-02	smoothed_val_loss: 0.052328738403320314 current_lr0.0005
+Epoch: 2	TL: 3.541e-02	VL: 1.858e-02	smoothed_val_loss: 0.02195743564605713 current_lr0.0005
+Epoch: 3	TL: 2.025e-02	VL: 1.563e-02	smoothed_val_loss: 0.01626525970840454 current_lr0.0005
+Epoch: 4	TL: 1.434e-02	VL: 9.056e-03	smoothed_val_loss: 0.009777288299942016 current_lr0.0005
+Epoch: 5	TL: 1.248e-02	VL: 1.223e-02	smoothed_val_loss: 0.011982561193122862 current_lr0.0005
+Epoch: 6	TL: 1.169e-02	VL: 7.764e-03	smoothed_val_loss: 0.008185651830257415 current_lr0.0005
+Epoch: 7	TL: 9.928e-03	VL: 8.156e-03	smoothed_val_loss: 0.00815905336890831 current_lr0.0005
+Epoch: 8	TL: 9.636e-03	VL: 7.355e-03	smoothed_val_loss: 0.007435231847320213 current_lr0.0005
+Epoch: 9	TL: 8.253e-03	VL: 1.176e-02	smoothed_val_loss: 0.01132488916106564 current_lr0.0005
+Epoch: 10	TL: 7.232e-03	VL: 6.494e-03	smoothed_val_loss: 0.0069774985911325044 current_lr0.0005
+Epoch: 11	TL: 6.953e-03	VL: 4.758e-03	smoothed_val_loss: 0.004980039802808319 current_lr0.0005
+Epoch: 12	TL: 6.885e-03	VL: 7.991e-03	smoothed_val_loss: 0.007689941045405343 current_lr0.0005
+Epoch: 13	TL: 5.865e-03	VL: 6.535e-03	smoothed_val_loss: 0.006650447318232246 current_lr0.0005
+Epoch: 14	TL: 6.068e-03	VL: 5.419e-03	smoothed_val_loss: 0.005541864113537092 current_lr0.0005
+Epoch: 15	TL: 5.262e-03	VL: 7.850e-03	smoothed_val_loss: 0.007618885746451975 current_lr0.0005
+Epoch: 16	TL: 5.078e-03	VL: 4.937e-03	smoothed_val_loss: 0.005205159210250056 current_lr0.0005
+Epoch: 17	TL: 5.013e-03	VL: 6.531e-03	smoothed_val_loss: 0.006398409607319562 current_lr0.0005
+Epoch: 18	TL: 2.445e-03	VL: 2.870e-03	smoothed_val_loss: 0.0032227445342449873 current_lr0.00025
+Epoch: 19	TL: 2.655e-03	VL: 2.602e-03	smoothed_val_loss: 0.002663815865301177 current_lr0.00025
+Epoch: 20	TL: 2.676e-03	VL: 2.435e-03	smoothed_val_loss: 0.002457600460984616 current_lr0.00025
+Epoch: 21	TL: 2.563e-03	VL: 3.533e-03	smoothed_val_loss: 0.0034254639659860044 current_lr0.00025
+Epoch: 22	TL: 2.534e-03	VL: 2.242e-03	smoothed_val_loss: 0.0023599210480306377 current_lr0.00025
+Epoch: 23	TL: 2.420e-03	VL: 2.391e-03	smoothed_val_loss: 0.0023879264877185607 current_lr0.00025
+Epoch: 24	TL: 2.273e-03	VL: 2.165e-03	smoothed_val_loss: 0.002187634177664373 current_lr0.00025
+Epoch: 25	TL: 2.151e-03	VL: 2.315e-03	smoothed_val_loss: 0.0023024938602903933 current_lr0.00025
+Epoch: 26	TL: 2.108e-03	VL: 4.326e-03	smoothed_val_loss: 0.0041236962487266405 current_lr0.00025
+Epoch: 27	TL: 2.115e-03	VL: 2.101e-03	smoothed_val_loss: 0.002303462957640151 current_lr0.00025
+Epoch: 28	TL: 1.993e-03	VL: 1.912e-03	smoothed_val_loss: 0.0019509661912222366 current_lr0.00025
+Epoch: 29	TL: 2.008e-03	VL: 2.144e-03	smoothed_val_loss: 0.0021250564265181586 current_lr0.00025
+Epoch: 30	TL: 1.972e-03	VL: 1.925e-03	smoothed_val_loss: 0.0019447645442478853 current_lr0.00025
+Epoch: 31	TL: 1.836e-03	VL: 2.230e-03	smoothed_val_loss: 0.0022015064908742213 current_lr0.00025
+Epoch: 32	TL: 1.773e-03	VL: 2.021e-03	smoothed_val_loss: 0.002039373955266469 current_lr0.00025
+Epoch: 33	TL: 1.791e-03	VL: 2.894e-03	smoothed_val_loss: 0.0028084397897260183 current_lr0.00025
+Epoch: 34	TL: 1.739e-03	VL: 1.911e-03	smoothed_val_loss: 0.0020009101162864447 current_lr0.00025
+Epoch: 35	TL: 1.783e-03	VL: 2.177e-03	smoothed_val_loss: 0.0021593961812110115 current_lr0.00025
+Epoch: 36	TL: 1.629e-03	VL: 2.370e-03	smoothed_val_loss: 0.0023485599074468157 current_lr0.00025
+Epoch: 37	TL: 9.744e-04	VL: 1.387e-03	smoothed_val_loss: 0.0014832173923026038 current_lr0.000125
+Epoch: 38	TL: 1.048e-03	VL: 1.405e-03	smoothed_val_loss: 0.0014128616676665397 current_lr0.000125
+Epoch: 39	TL: 1.046e-03	VL: 1.310e-03	smoothed_val_loss: 0.0013202141247782811 current_lr0.000125
+Epoch: 40	TL: 1.062e-03	VL: 1.360e-03	smoothed_val_loss: 0.0013559524389365684 current_lr0.000125
+Epoch: 41	TL: 9.607e-04	VL: 1.339e-03	smoothed_val_loss: 0.0013410475024805404 current_lr0.000125
+Epoch: 42	TL: 1.028e-03	VL: 1.344e-03	smoothed_val_loss: 0.0013434724760972056 current_lr0.000125
+Epoch: 43	TL: 9.551e-04	VL: 1.396e-03	smoothed_val_loss: 0.001390404636392222 current_lr0.000125
+Epoch: 44	TL: 9.618e-04	VL: 1.163e-03	smoothed_val_loss: 0.0011855710227021803 current_lr0.000125
+Epoch: 45	TL: 9.470e-04	VL: 1.286e-03	smoothed_val_loss: 0.0012760833926869354 current_lr0.000125
+Epoch: 46	TL: 9.247e-04	VL: 1.256e-03	smoothed_val_loss: 0.0012577124113626573 current_lr0.000125
+Epoch: 47	TL: 9.491e-04	VL: 1.122e-03	smoothed_val_loss: 0.0011359040736634264 current_lr0.000125
+Epoch: 48	TL: 8.814e-04	VL: 1.311e-03	smoothed_val_loss: 0.001293056695456095 current_lr0.000125
+Epoch: 49	TL: 8.895e-04	VL: 1.367e-03	smoothed_val_loss: 0.0013594798057074136 current_lr0.000125
+Epoch: 50	TL: 8.563e-04	VL: 1.184e-03	smoothed_val_loss: 0.0012018032118558365 current_lr0.000125
+Epoch: 51	TL: 8.794e-04	VL: 1.141e-03	smoothed_val_loss: 0.0011473739127802797 current_lr0.000125
+Epoch: 52	TL: 8.762e-04	VL: 1.214e-03	smoothed_val_loss: 0.0012074684856383795 current_lr0.000125
+Epoch: 53	TL: 8.889e-04	VL: 1.382e-03	smoothed_val_loss: 0.0013649589371487378 current_lr0.000125
+Epoch: 54	TL: 5.772e-04	VL: 1.033e-03	smoothed_val_loss: 0.0010663420350532221 current_lr6.25e-05
+Epoch: 55	TL: 6.188e-04	VL: 1.157e-03	smoothed_val_loss: 0.001147827381205365 current_lr6.25e-05
+Epoch: 56	TL: 5.998e-04	VL: 1.073e-03	smoothed_val_loss: 0.0010800862235140606 current_lr6.25e-05
+Epoch: 57	TL: 6.211e-04	VL: 1.003e-03	smoothed_val_loss: 0.0010110377375514487 current_lr6.25e-05
+Epoch: 58	TL: 6.026e-04	VL: 1.340e-03	smoothed_val_loss: 0.0013069541150751826 current_lr6.25e-05
+Epoch: 59	TL: 6.018e-04	VL: 1.050e-03	smoothed_val_loss: 0.0010754024069947314 current_lr6.25e-05
+Epoch: 60	TL: 5.860e-04	VL: 9.770e-04	smoothed_val_loss: 0.0009868762664143474 current_lr6.25e-05
+Epoch: 61	TL: 5.791e-04	VL: 9.838e-04	smoothed_val_loss: 0.0009840973537379924 current_lr6.25e-05
+Epoch: 62	TL: 5.847e-04	VL: 9.780e-04	smoothed_val_loss: 0.0009785800353806658 current_lr6.25e-05
+Epoch: 63	TL: 5.830e-04	VL: 1.036e-03	smoothed_val_loss: 0.0010303883709124866 current_lr6.25e-05
+Epoch: 64	TL: 5.620e-04	VL: 1.183e-03	smoothed_val_loss: 0.0011679201904695447 current_lr6.25e-05
+Epoch: 65	TL: 5.743e-04	VL: 9.940e-04	smoothed_val_loss: 0.0010114241677896302 current_lr6.25e-05
+Epoch: 66	TL: 5.473e-04	VL: 1.010e-03	smoothed_val_loss: 0.0010105505760349444 current_lr6.25e-05
+Epoch: 67	TL: 5.491e-04	VL: 1.068e-03	smoothed_val_loss: 0.0010621384840790193 current_lr6.25e-05
+Epoch: 68	TL: 5.469e-04	VL: 1.042e-03	smoothed_val_loss: 0.0010443656538087502 current_lr6.25e-05
+Epoch: 69	TL: 4.454e-04	VL: 8.886e-04	smoothed_val_loss: 0.0009042055043991245 current_lr3.125e-05
+Epoch: 70	TL: 4.543e-04	VL: 8.661e-04	smoothed_val_loss: 0.0008699165168743913 current_lr3.125e-05
+Epoch: 71	TL: 4.550e-04	VL: 9.328e-04	smoothed_val_loss: 0.0009265417844389039 current_lr3.125e-05
+Epoch: 72	TL: 4.573e-04	VL: 8.803e-04	smoothed_val_loss: 0.000884955504241925 current_lr3.125e-05
+Epoch: 73	TL: 4.443e-04	VL: 8.856e-04	smoothed_val_loss: 0.0008855327561202985 current_lr3.125e-05
+Epoch: 74	TL: 4.442e-04	VL: 8.603e-04	smoothed_val_loss: 0.0008628118963510131 current_lr3.125e-05
+Epoch: 75	TL: 4.448e-04	VL: 8.813e-04	smoothed_val_loss: 0.0008794075629261169 current_lr3.125e-05
+Epoch: 76	TL: 4.416e-04	VL: 8.691e-04	smoothed_val_loss: 0.0008700896205618683 current_lr3.125e-05
+Epoch: 77	TL: 4.358e-04	VL: 8.732e-04	smoothed_val_loss: 0.0008729336685152322 current_lr3.125e-05
+Epoch: 78	TL: 4.370e-04	VL: 8.874e-04	smoothed_val_loss: 0.0008859133548161535 current_lr3.125e-05
+Epoch: 79	TL: 4.404e-04	VL: 9.684e-04	smoothed_val_loss: 0.0009601227981509879 current_lr3.125e-05
+Epoch: 80	TL: 4.326e-04	VL: 8.649e-04	smoothed_val_loss: 0.0008744650171464891 current_lr3.125e-05
+Epoch: 81	TL: 3.856e-04	VL: 8.462e-04	smoothed_val_loss: 0.0008490089182681463 current_lr1.5625e-05
+Epoch: 82	TL: 3.882e-04	VL: 8.321e-04	smoothed_val_loss: 0.000833830297039217 current_lr1.5625e-05
+Epoch: 83	TL: 3.859e-04	VL: 8.212e-04	smoothed_val_loss: 0.0008224464386747544 current_lr1.5625e-05
+Epoch: 84	TL: 3.867e-04	VL: 8.088e-04	smoothed_val_loss: 0.0008101316472892589 current_lr1.5625e-05
+Epoch: 85	TL: 3.834e-04	VL: 8.258e-04	smoothed_val_loss: 0.0008242513301074965 current_lr1.5625e-05
+Epoch: 86	TL: 3.836e-04	VL: 8.618e-04	smoothed_val_loss: 0.0008580692541807936 current_lr1.5625e-05
+Epoch: 87	TL: 3.807e-04	VL: 8.087e-04	smoothed_val_loss: 0.0008136751587411766 current_lr1.5625e-05
+Epoch: 88	TL: 3.817e-04	VL: 8.142e-04	smoothed_val_loss: 0.0008141195100071132 current_lr1.5625e-05
+Epoch: 89	TL: 3.822e-04	VL: 8.220e-04	smoothed_val_loss: 0.0008211792145323962 current_lr1.5625e-05
+Epoch: 90	TL: 3.762e-04	VL: 8.453e-04	smoothed_val_loss: 0.0008428763404901049 current_lr1.5625e-05
+Epoch: 91	TL: 3.536e-04	VL: 7.984e-04	smoothed_val_loss: 0.0008028346706968071 current_lr7.8125e-06
+Epoch: 92	TL: 3.554e-04	VL: 8.100e-04	smoothed_val_loss: 0.0008092827932987762 current_lr7.8125e-06
+Epoch: 93	TL: 3.546e-04	VL: 8.046e-04	smoothed_val_loss: 0.0008051059647098596 current_lr7.8125e-06
+Epoch: 94	TL: 3.546e-04	VL: 7.906e-04	smoothed_val_loss: 0.0007920854560901265 current_lr7.8125e-06
+Epoch: 95	TL: 3.543e-04	VL: 8.031e-04	smoothed_val_loss: 0.0008019968628125343 current_lr7.8125e-06
+Epoch: 96	TL: 3.534e-04	VL: 8.163e-04	smoothed_val_loss: 0.0008149121391697422 current_lr7.8125e-06
+Epoch: 97	TL: 3.512e-04	VL: 7.951e-04	smoothed_val_loss: 0.000797048553108411 current_lr7.8125e-06
+Epoch: 98	TL: 3.509e-04	VL: 8.097e-04	smoothed_val_loss: 0.0008084155758499342 current_lr7.8125e-06
+Epoch: 99	TL: 3.513e-04	VL: 7.925e-04	smoothed_val_loss: 0.0007941049911606236 current_lr7.8125e-06
+Epoch: 100	TL: 3.506e-04	VL: 7.926e-04	smoothed_val_loss: 0.0007927168426715128 current_lr7.8125e-06
+Epoch: 101	TL: 3.369e-04	VL: 7.863e-04	smoothed_val_loss: 0.0007869733053227543 current_lr3.90625e-06
+Epoch: 102	TL: 3.363e-04	VL: 8.027e-04	smoothed_val_loss: 0.0008011494542934526 current_lr3.90625e-06
+Epoch: 103	TL: 3.381e-04	VL: 7.863e-04	smoothed_val_loss: 0.0007877798094926082 current_lr3.90625e-06
+Epoch: 104	TL: 3.377e-04	VL: 7.896e-04	smoothed_val_loss: 0.0007893920357483407 current_lr3.90625e-06
+Epoch: 105	TL: 3.372e-04	VL: 7.817e-04	smoothed_val_loss: 0.0007824983995701649 current_lr3.90625e-06
+Epoch: 106	TL: 3.371e-04	VL: 7.909e-04	smoothed_val_loss: 0.0007900394747808155 current_lr3.90625e-06
+Epoch: 107	TL: 3.371e-04	VL: 7.825e-04	smoothed_val_loss: 0.0007832387436445016 current_lr3.90625e-06
+Epoch: 108	TL: 3.363e-04	VL: 7.847e-04	smoothed_val_loss: 0.0007845578603845383 current_lr3.90625e-06
+Epoch: 109	TL: 3.359e-04	VL: 7.860e-04	smoothed_val_loss: 0.0007858406972179963 current_lr3.90625e-06
+Epoch: 110	TL: 3.360e-04	VL: 7.826e-04	smoothed_val_loss: 0.0007829644079137857 current_lr3.90625e-06
+Epoch: 111	TL: 3.349e-04	VL: 7.843e-04	smoothed_val_loss: 0.0007841630231850249 current_lr3.90625e-06
+Epoch: 112	TL: 3.289e-04	VL: 7.814e-04	smoothed_val_loss: 0.0007816695816468488 current_lr1.953125e-06
+Epoch: 113	TL: 3.287e-04	VL: 7.819e-04	smoothed_val_loss: 0.000781918763589375 current_lr1.953125e-06
+Epoch: 114	TL: 3.283e-04	VL: 7.787e-04	smoothed_val_loss: 0.0007790181374024861 current_lr1.953125e-06
+Epoch: 115	TL: 3.277e-04	VL: 7.791e-04	smoothed_val_loss: 0.0007790840790219258 current_lr1.953125e-06
+Epoch: 116	TL: 3.276e-04	VL: 7.827e-04	smoothed_val_loss: 0.0007823673079962248 current_lr1.953125e-06
+Epoch: 117	TL: 3.277e-04	VL: 7.770e-04	smoothed_val_loss: 0.000777535870776124 current_lr1.953125e-06
+Epoch: 118	TL: 3.279e-04	VL: 7.765e-04	smoothed_val_loss: 0.0007765934524044938 current_lr1.953125e-06
+Epoch: 119	TL: 3.278e-04	VL: 7.796e-04	smoothed_val_loss: 0.0007792810207317824 current_lr1.953125e-06
+Epoch: 120	TL: 3.269e-04	VL: 7.778e-04	smoothed_val_loss: 0.0007779041672320222 current_lr1.953125e-06
+Epoch: 121	TL: 3.271e-04	VL: 7.760e-04	smoothed_val_loss: 0.0007761968156156048 current_lr1.953125e-06
+Epoch: 122	TL: 3.275e-04	VL: 7.772e-04	smoothed_val_loss: 0.0007770724209195087 current_lr1.953125e-06
+Epoch: 123	TL: 3.272e-04	VL: 7.763e-04	smoothed_val_loss: 0.0007764183184707732 current_lr1.953125e-06
+Epoch: 124	TL: 3.267e-04	VL: 7.815e-04	smoothed_val_loss: 0.0007809948625286874 current_lr1.953125e-06
+Epoch: 125	TL: 3.266e-04	VL: 7.790e-04	smoothed_val_loss: 0.0007791583109112625 current_lr1.953125e-06
+Epoch: 126	TL: 3.258e-04	VL: 7.801e-04	smoothed_val_loss: 0.000780047689559182 current_lr1.953125e-06
+Epoch: 127	TL: 3.257e-04	VL: 7.754e-04	smoothed_val_loss: 0.000775898265111657 current_lr1.953125e-06
+Epoch: 128	TL: 3.258e-04	VL: 7.772e-04	smoothed_val_loss: 0.0007770302277076456 current_lr1.953125e-06
+Epoch: 129	TL: 3.254e-04	VL: 7.733e-04	smoothed_val_loss: 0.0007736460540817998 current_lr1.953125e-06
+Epoch: 130	TL: 3.259e-04	VL: 7.767e-04	smoothed_val_loss: 0.0007763843289427641 current_lr1.953125e-06
+Epoch: 131	TL: 3.257e-04	VL: 7.743e-04	smoothed_val_loss: 0.0007745417433124055 current_lr1.953125e-06
+Epoch: 132	TL: 3.250e-04	VL: 7.821e-04	smoothed_val_loss: 0.0007813670625005292 current_lr1.953125e-06
+Epoch: 133	TL: 3.247e-04	VL: 7.726e-04	smoothed_val_loss: 0.0007734348486832194 current_lr1.953125e-06
+Epoch: 134	TL: 3.251e-04	VL: 7.722e-04	smoothed_val_loss: 0.0007723178095715385 current_lr1.953125e-06
+Epoch: 135	TL: 3.246e-04	VL: 7.743e-04	smoothed_val_loss: 0.0007740888930072103 current_lr1.953125e-06
+Epoch: 136	TL: 3.249e-04	VL: 7.753e-04	smoothed_val_loss: 0.0007751532707284858 current_lr1.953125e-06
+Epoch: 137	TL: 3.244e-04	VL: 7.758e-04	smoothed_val_loss: 0.0007757117197282211 current_lr1.953125e-06
+Epoch: 138	TL: 3.244e-04	VL: 7.747e-04	smoothed_val_loss: 0.000774817756865095 current_lr1.953125e-06
+Epoch: 139	TL: 3.243e-04	VL: 7.809e-04	smoothed_val_loss: 0.0007803079829666685 current_lr1.953125e-06
+Epoch: 140	TL: 3.240e-04	VL: 7.767e-04	smoothed_val_loss: 0.0007770343856618173 current_lr1.953125e-06
+Epoch: 141	TL: 3.204e-04	VL: 7.717e-04	smoothed_val_loss: 0.0007722240193347669 current_lr9.765625e-07
+SWA: triggered after 141 epochs.
+Epoch: 142	TL: 3.588e-04	VL: 8.666e-04	smoothed_val_loss: 0.0008571511266992543 current_lr1.318853524080886e-05
+SWA: triggered after 142 epochs.
+Epoch: 143	TL: 4.784e-04	VL: 8.589e-04	smoothed_val_loss: 0.0008586931609945105 current_lr4.8629060485547775e-05
+SWA: triggered after 143 epochs.
+Epoch: 144	TL: 6.811e-04	VL: 9.512e-04	smoothed_val_loss: 0.000941965416906641 current_lr0.00010382897269460265
+SWA: triggered after 144 epochs.
+Epoch: 145	TL: 9.800e-04	VL: 1.395e-03	smoothed_val_loss: 0.0013492532733915613 current_lr0.0001733849198605478
+SWA: triggered after 145 epochs.
+Epoch: 146	TL: 1.312e-03	VL: 1.304e-03	smoothed_val_loss: 0.0013082370186233358 current_lr0.00025048828124999995
+SWA: triggered after 146 epochs.
+Epoch: 147	TL: 1.874e-03	VL: 1.554e-03	smoothed_val_loss: 0.0015295642890968309 current_lr0.00032759164263945225
+SWA: triggered after 147 epochs.
+Epoch: 148	TL: 2.208e-03	VL: 1.576e-03	smoothed_val_loss: 0.0015710102943424223 current_lr0.0003971475898053973
+SWA: triggered after 148 epochs.
+Epoch: 149	TL: 2.355e-03	VL: 2.512e-03	smoothed_val_loss: 0.0024176177564049148 current_lr0.0004523475020144522
+SWA: triggered after 149 epochs.
+Epoch: 150	TL: 2.540e-03	VL: 3.515e-03	smoothed_val_loss: 0.0034050029832401315 current_lr0.0004877880272591912
+SWA: triggered after 150 epochs.
+Epoch: 151	TL: 2.374e-03	VL: 1.358e-03	smoothed_val_loss: 0.0015623108132509235 current_lr0.0005
+SWA: triggered after 151 epochs.
+Epoch: 152	TL: 2.368e-03	VL: 2.841e-03	smoothed_val_loss: 0.002713262195426502 current_lr0.0005
+SWA: triggered after 152 epochs.
+Epoch: 153	TL: 2.430e-03	VL: 2.094e-03	smoothed_val_loss: 0.0021555744690734424 current_lr0.0005
+SWA: triggered after 153 epochs.
+Epoch: 154	TL: 3.030e-03	VL: 1.972e-03	smoothed_val_loss: 0.0019905138759120137 current_lr0.0005
+SWA: triggered after 154 epochs.
+Epoch: 155	TL: 1.986e-03	VL: 1.588e-03	smoothed_val_loss: 0.0016280304911564175 current_lr0.0005
+SWA: triggered after 155 epochs.
+Epoch: 156	TL: 2.301e-03	VL: 2.631e-03	smoothed_val_loss: 0.0025306079435629685 current_lr0.0005
+SWA: triggered after 156 epochs.
+Epoch: 157	TL: 2.088e-03	VL: 5.358e-03	smoothed_val_loss: 0.005075174184325169 current_lr0.0005
+SWA: triggered after 157 epochs.
+Epoch: 158	TL: 2.304e-03	VL: 1.854e-03	smoothed_val_loss: 0.0021764896626952123 current_lr0.0005
+SWA: triggered after 158 epochs.
+Epoch: 159	TL: 2.166e-03	VL: 1.621e-03	smoothed_val_loss: 0.001676131510691671 current_lr0.0005
+SWA: triggered after 159 epochs.
+Epoch: 160	TL: 2.126e-03	VL: 1.714e-03	smoothed_val_loss: 0.0017105349183039694 current_lr0.0005
+SWA: triggered after 160 epochs.
+Epoch: 161	TL: 1.814e-03	VL: 2.155e-03	smoothed_val_loss: 0.002110784822701979 current_lr0.0005
+SWA: triggered after 161 epochs.
+Epoch: 162	TL: 2.223e-03	VL: 2.298e-03	smoothed_val_loss: 0.0022790025812387035 current_lr0.0005
+SWA: triggered after 162 epochs.
+Epoch: 163	TL: 1.898e-03	VL: 2.283e-03	smoothed_val_loss: 0.00228235069853067 current_lr0.0005
+SWA: triggered after 163 epochs.
+Epoch: 164	TL: 1.961e-03	VL: 1.857e-03	smoothed_val_loss: 0.0018996088138639922 current_lr0.0005
+SWA: triggered after 164 epochs.
+Epoch: 165	TL: 1.988e-03	VL: 1.895e-03	smoothed_val_loss: 0.0018955747830015422 current_lr0.0005
+SWA: triggered after 165 epochs.
+Epoch: 166	TL: 2.031e-03	VL: 2.974e-03	smoothed_val_loss: 0.0028663360713635086 current_lr0.0005
+SWA: triggered after 166 epochs.
+Epoch: 167	TL: 1.822e-03	VL: 2.435e-03	smoothed_val_loss: 0.002477773581730467 current_lr0.0005
+SWA: triggered after 167 epochs.
+Epoch: 168	TL: 1.786e-03	VL: 2.770e-03	smoothed_val_loss: 0.0027408626352535825 current_lr0.0005
+SWA: triggered after 168 epochs.
+Epoch: 169	TL: 1.763e-03	VL: 2.245e-03	smoothed_val_loss: 0.002294370231973997 current_lr0.0005
+SWA: triggered after 169 epochs.
+Epoch: 170	TL: 1.908e-03	VL: 1.621e-03	smoothed_val_loss: 0.0016881317625391354 current_lr0.0005
+SWA: triggered after 170 epochs.
+Epoch: 171	TL: 1.910e-03	VL: 1.713e-03	smoothed_val_loss: 0.0017102353955303418 current_lr0.0005
+Early stopping triggered after 171 epochs.
+Test MAE: 16.972
+swa Test MAE: 16.972
