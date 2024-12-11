@@ -446,15 +446,9 @@ post_processing = AtomwisePostProcessing(
 painn.to(device)
 post_processing.to(device)
 
-# optimizer = torch.optim.AdamW(
-#     painn.parameters(),
-#     lr=args.lr,
-#     weight_decay=args.weight_decay,
-# )
-
 import torch.optim as optim
-from torch.optim.swa_utils import AveragedModel, SWALR
-optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9)
+optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
+#optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
 
 
 train_losses, val_losses, val_maes = [], [], []
@@ -472,6 +466,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-10
 )
 
+from torch.optim.swa_utils import AveragedModel, SWALR
 swa_model = AveragedModel(painn)
 swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
 
