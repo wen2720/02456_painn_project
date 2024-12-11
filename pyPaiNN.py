@@ -508,8 +508,7 @@ for epoch in range(args.num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        swa_scheduler.step()
-
+        
         loss_epoch += loss_step.detach().item()
 
     loss_epoch /= len(dm.data_train)
@@ -567,7 +566,6 @@ for epoch in range(args.num_epochs):
         swa_scheduler.step()
     else:
         scheduler.step(smoothed_val_loss)
-
     
 
 painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
