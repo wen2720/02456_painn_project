@@ -1,0 +1,260 @@
+Wed Dec 11 14:25:58 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 565.57.01              Driver Version: 565.57.01      CUDA Version: 12.7     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:58:00.0 Off |                    0 |
+| N/A   35C    P0             26W /  250W |       1MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+cuda
+Tesla V100-PCIE-32GB
+Namespace(seed=0, target=7, data_dir='data/', batch_size_train=100, batch_size_inference=1000, num_workers=0, splits=[110000, 10000, 10831], subset_size=None, num_message_passing_layers=3, num_features=128, num_outputs=1, num_rbf_features=20, num_unique_atoms=100, cutoff_dist=5.0, lr=0.0005, weight_decay=1e-08, num_epochs=1000)
+PaiNN(
+  (zi): Embedding(100, 128)
+  (Lm): Message(
+    (Ls): Sequential(
+      (0): Linear(in_features=128, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+    (Lrbf): Linear(in_features=20, out_features=384, bias=True)
+  )
+  (Lu): Update(
+    (Luu): Linear(in_features=3, out_features=3, bias=False)
+    (Luv): Linear(in_features=3, out_features=3, bias=False)
+    (Ls): Sequential(
+      (0): Linear(in_features=256, out_features=128, bias=True)
+      (1): SiLU()
+      (2): Linear(in_features=128, out_features=384, bias=True)
+    )
+  )
+  (Lr): Sequential(
+    (0): Linear(in_features=128, out_features=64, bias=True)
+    (1): SiLU()
+    (2): Linear(in_features=64, out_features=1, bias=True)
+  )
+)
+Epoch: 1	TL: 2.689e-01	VL: 5.220e-02 current_lr0.0005
+Epoch: 2	TL: 3.540e-02	VL: 1.857e-02 current_lr0.0005
+Epoch: 3	TL: 2.024e-02	VL: 1.562e-02 current_lr0.0005
+Epoch: 4	TL: 1.436e-02	VL: 9.016e-03 current_lr0.0005
+Epoch: 5	TL: 1.248e-02	VL: 1.230e-02 current_lr0.0005
+Epoch: 6	TL: 1.168e-02	VL: 7.611e-03 current_lr0.0005
+Epoch: 7	TL: 9.929e-03	VL: 8.183e-03 current_lr0.0005
+Epoch: 8	TL: 9.637e-03	VL: 7.444e-03 current_lr0.0005
+Epoch: 9	TL: 8.261e-03	VL: 1.165e-02 current_lr0.0005
+Epoch: 10	TL: 7.227e-03	VL: 6.462e-03 current_lr0.0005
+Epoch: 11	TL: 6.961e-03	VL: 4.734e-03 current_lr0.0005
+Epoch: 12	TL: 6.875e-03	VL: 7.937e-03 current_lr0.0005
+Epoch: 13	TL: 5.857e-03	VL: 6.578e-03 current_lr0.0005
+Epoch: 14	TL: 6.089e-03	VL: 5.356e-03 current_lr0.0005
+Epoch: 15	TL: 5.255e-03	VL: 8.051e-03 current_lr0.0005
+Epoch: 16	TL: 5.078e-03	VL: 5.040e-03 current_lr0.0005
+Epoch: 17	TL: 4.991e-03	VL: 6.579e-03 current_lr0.0005
+Epoch: 18	TL: 2.448e-03	VL: 2.865e-03 current_lr0.00025
+Epoch: 19	TL: 2.659e-03	VL: 2.626e-03 current_lr0.00025
+Epoch: 20	TL: 2.665e-03	VL: 2.416e-03 current_lr0.00025
+Epoch: 21	TL: 2.566e-03	VL: 3.520e-03 current_lr0.00025
+Epoch: 22	TL: 2.527e-03	VL: 2.207e-03 current_lr0.00025
+Epoch: 23	TL: 2.410e-03	VL: 2.391e-03 current_lr0.00025
+Epoch: 24	TL: 2.275e-03	VL: 2.152e-03 current_lr0.00025
+Epoch: 25	TL: 2.152e-03	VL: 2.320e-03 current_lr0.00025
+Epoch: 26	TL: 2.108e-03	VL: 4.341e-03 current_lr0.00025
+Epoch: 27	TL: 2.114e-03	VL: 2.080e-03 current_lr0.00025
+Epoch: 28	TL: 1.990e-03	VL: 1.921e-03 current_lr0.00025
+Epoch: 29	TL: 2.006e-03	VL: 2.095e-03 current_lr0.00025
+Epoch: 30	TL: 1.969e-03	VL: 1.938e-03 current_lr0.00025
+Epoch: 31	TL: 1.838e-03	VL: 2.240e-03 current_lr0.00025
+Epoch: 32	TL: 1.767e-03	VL: 2.072e-03 current_lr0.00025
+Epoch: 33	TL: 1.791e-03	VL: 3.081e-03 current_lr0.00025
+Epoch: 34	TL: 1.741e-03	VL: 1.931e-03 current_lr0.00025
+Epoch: 35	TL: 1.778e-03	VL: 2.147e-03 current_lr0.00025
+Epoch: 36	TL: 1.630e-03	VL: 2.389e-03 current_lr0.00025
+Epoch: 37	TL: 9.733e-04	VL: 1.381e-03 current_lr0.000125
+Epoch: 38	TL: 1.050e-03	VL: 1.393e-03 current_lr0.000125
+Epoch: 39	TL: 1.043e-03	VL: 1.310e-03 current_lr0.000125
+Epoch: 40	TL: 1.061e-03	VL: 1.346e-03 current_lr0.000125
+Epoch: 41	TL: 9.608e-04	VL: 1.325e-03 current_lr0.000125
+Epoch: 42	TL: 1.026e-03	VL: 1.344e-03 current_lr0.000125
+Epoch: 43	TL: 9.578e-04	VL: 1.419e-03 current_lr0.000125
+Epoch: 44	TL: 9.580e-04	VL: 1.171e-03 current_lr0.000125
+Epoch: 45	TL: 9.485e-04	VL: 1.285e-03 current_lr0.000125
+Epoch: 46	TL: 9.254e-04	VL: 1.258e-03 current_lr0.000125
+Epoch: 47	TL: 9.465e-04	VL: 1.121e-03 current_lr0.000125
+Epoch: 48	TL: 8.805e-04	VL: 1.301e-03 current_lr0.000125
+Epoch: 49	TL: 8.864e-04	VL: 1.373e-03 current_lr0.000125
+Epoch: 50	TL: 8.591e-04	VL: 1.193e-03 current_lr0.000125
+Epoch: 51	TL: 8.776e-04	VL: 1.137e-03 current_lr0.000125
+Epoch: 52	TL: 8.748e-04	VL: 1.173e-03 current_lr0.000125
+Epoch: 53	TL: 8.909e-04	VL: 1.407e-03 current_lr0.000125
+Epoch: 54	TL: 5.756e-04	VL: 1.020e-03 current_lr6.25e-05
+Epoch: 55	TL: 6.194e-04	VL: 1.166e-03 current_lr6.25e-05
+Epoch: 56	TL: 5.989e-04	VL: 1.061e-03 current_lr6.25e-05
+Epoch: 57	TL: 6.207e-04	VL: 9.917e-04 current_lr6.25e-05
+Epoch: 58	TL: 6.026e-04	VL: 1.275e-03 current_lr6.25e-05
+Epoch: 59	TL: 6.004e-04	VL: 1.044e-03 current_lr6.25e-05
+Epoch: 60	TL: 5.856e-04	VL: 9.708e-04 current_lr6.25e-05
+Epoch: 61	TL: 5.788e-04	VL: 9.772e-04 current_lr6.25e-05
+Epoch: 62	TL: 5.839e-04	VL: 9.639e-04 current_lr6.25e-05
+Epoch: 63	TL: 5.818e-04	VL: 1.024e-03 current_lr6.25e-05
+Epoch: 64	TL: 5.609e-04	VL: 1.206e-03 current_lr6.25e-05
+Epoch: 65	TL: 5.744e-04	VL: 9.789e-04 current_lr6.25e-05
+Epoch: 66	TL: 5.468e-04	VL: 1.003e-03 current_lr6.25e-05
+Epoch: 67	TL: 5.532e-04	VL: 1.049e-03 current_lr6.25e-05
+Epoch: 68	TL: 5.437e-04	VL: 1.035e-03 current_lr6.25e-05
+Epoch: 69	TL: 4.449e-04	VL: 8.880e-04 current_lr3.125e-05
+Epoch: 70	TL: 4.546e-04	VL: 8.595e-04 current_lr3.125e-05
+Epoch: 71	TL: 4.549e-04	VL: 9.292e-04 current_lr3.125e-05
+Epoch: 72	TL: 4.570e-04	VL: 8.708e-04 current_lr3.125e-05
+Epoch: 73	TL: 4.439e-04	VL: 8.819e-04 current_lr3.125e-05
+Epoch: 74	TL: 4.446e-04	VL: 8.563e-04 current_lr3.125e-05
+Epoch: 75	TL: 4.436e-04	VL: 8.748e-04 current_lr3.125e-05
+Epoch: 76	TL: 4.404e-04	VL: 8.659e-04 current_lr3.125e-05
+Epoch: 77	TL: 4.352e-04	VL: 8.753e-04 current_lr3.125e-05
+Epoch: 78	TL: 4.362e-04	VL: 8.835e-04 current_lr3.125e-05
+Epoch: 79	TL: 4.399e-04	VL: 9.549e-04 current_lr3.125e-05
+Epoch: 80	TL: 4.323e-04	VL: 8.519e-04 current_lr3.125e-05
+Epoch: 81	TL: 3.849e-04	VL: 8.484e-04 current_lr1.5625e-05
+Epoch: 82	TL: 3.874e-04	VL: 8.262e-04 current_lr1.5625e-05
+Epoch: 83	TL: 3.861e-04	VL: 8.157e-04 current_lr1.5625e-05
+Epoch: 84	TL: 3.864e-04	VL: 8.063e-04 current_lr1.5625e-05
+Epoch: 85	TL: 3.828e-04	VL: 8.211e-04 current_lr1.5625e-05
+Epoch: 86	TL: 3.834e-04	VL: 8.560e-04 current_lr1.5625e-05
+Epoch: 87	TL: 3.808e-04	VL: 8.045e-04 current_lr1.5625e-05
+Epoch: 88	TL: 3.814e-04	VL: 8.112e-04 current_lr1.5625e-05
+Epoch: 89	TL: 3.819e-04	VL: 8.129e-04 current_lr1.5625e-05
+Epoch: 90	TL: 3.752e-04	VL: 8.359e-04 current_lr1.5625e-05
+Epoch: 91	TL: 3.534e-04	VL: 7.935e-04 current_lr7.8125e-06
+Epoch: 92	TL: 3.550e-04	VL: 8.045e-04 current_lr7.8125e-06
+Epoch: 93	TL: 3.546e-04	VL: 8.044e-04 current_lr7.8125e-06
+Epoch: 94	TL: 3.544e-04	VL: 7.872e-04 current_lr7.8125e-06
+Epoch: 95	TL: 3.539e-04	VL: 7.991e-04 current_lr7.8125e-06
+Epoch: 96	TL: 3.531e-04	VL: 8.097e-04 current_lr7.8125e-06
+Epoch: 97	TL: 3.513e-04	VL: 7.908e-04 current_lr7.8125e-06
+Epoch: 98	TL: 3.506e-04	VL: 8.067e-04 current_lr7.8125e-06
+Epoch: 99	TL: 3.512e-04	VL: 7.873e-04 current_lr7.8125e-06
+Epoch: 100	TL: 3.501e-04	VL: 7.892e-04 current_lr7.8125e-06
+Epoch: 101	TL: 3.366e-04	VL: 7.821e-04 current_lr3.90625e-06
+Epoch: 102	TL: 3.361e-04	VL: 7.980e-04 current_lr3.90625e-06
+Epoch: 103	TL: 3.380e-04	VL: 7.821e-04 current_lr3.90625e-06
+Epoch: 104	TL: 3.374e-04	VL: 7.843e-04 current_lr3.90625e-06
+Epoch: 105	TL: 3.370e-04	VL: 7.773e-04 current_lr3.90625e-06
+Epoch: 106	TL: 3.369e-04	VL: 7.866e-04 current_lr3.90625e-06
+Epoch: 107	TL: 3.369e-04	VL: 7.785e-04 current_lr3.90625e-06
+Epoch: 108	TL: 3.357e-04	VL: 7.820e-04 current_lr3.90625e-06
+Epoch: 109	TL: 3.356e-04	VL: 7.814e-04 current_lr3.90625e-06
+Epoch: 110	TL: 3.360e-04	VL: 7.784e-04 current_lr3.90625e-06
+Epoch: 111	TL: 3.345e-04	VL: 7.796e-04 current_lr3.90625e-06
+Epoch: 112	TL: 3.288e-04	VL: 7.789e-04 current_lr1.953125e-06
+Epoch: 113	TL: 3.286e-04	VL: 7.780e-04 current_lr1.953125e-06
+Epoch: 114	TL: 3.280e-04	VL: 7.741e-04 current_lr1.953125e-06
+Epoch: 115	TL: 3.274e-04	VL: 7.738e-04 current_lr1.953125e-06
+Epoch: 116	TL: 3.274e-04	VL: 7.769e-04 current_lr1.953125e-06
+Epoch: 117	TL: 3.275e-04	VL: 7.720e-04 current_lr1.953125e-06
+Epoch: 118	TL: 3.275e-04	VL: 7.717e-04 current_lr1.953125e-06
+Epoch: 119	TL: 3.273e-04	VL: 7.739e-04 current_lr1.953125e-06
+Epoch: 120	TL: 3.266e-04	VL: 7.718e-04 current_lr1.953125e-06
+Epoch: 121	TL: 3.269e-04	VL: 7.714e-04 current_lr1.953125e-06
+Epoch: 122	TL: 3.272e-04	VL: 7.725e-04 current_lr1.953125e-06
+Epoch: 123	TL: 3.269e-04	VL: 7.725e-04 current_lr1.953125e-06
+Epoch: 124	TL: 3.266e-04	VL: 7.781e-04 current_lr1.953125e-06
+Epoch: 125	TL: 3.267e-04	VL: 7.741e-04 current_lr1.953125e-06
+Epoch: 126	TL: 3.255e-04	VL: 7.749e-04 current_lr1.953125e-06
+Epoch: 127	TL: 3.256e-04	VL: 7.711e-04 current_lr1.953125e-06
+Epoch: 128	TL: 3.223e-04	VL: 7.685e-04 current_lr9.765625e-07
+Epoch: 129	TL: 3.223e-04	VL: 7.682e-04 current_lr9.765625e-07
+Epoch: 130	TL: 3.223e-04	VL: 7.713e-04 current_lr9.765625e-07
+Epoch: 131	TL: 3.224e-04	VL: 7.713e-04 current_lr9.765625e-07
+Epoch: 132	TL: 3.218e-04	VL: 7.729e-04 current_lr9.765625e-07
+Epoch: 133	TL: 3.218e-04	VL: 7.694e-04 current_lr9.765625e-07
+Epoch: 134	TL: 3.223e-04	VL: 7.692e-04 current_lr9.765625e-07
+Epoch: 135	TL: 3.218e-04	VL: 7.691e-04 current_lr9.765625e-07
+Epoch: 136	TL: 3.200e-04	VL: 7.672e-04 current_lr4.8828125e-07
+Epoch: 137	TL: 3.197e-04	VL: 7.707e-04 current_lr4.8828125e-07
+Epoch: 138	TL: 3.200e-04	VL: 7.671e-04 current_lr4.8828125e-07
+Epoch: 139	TL: 3.197e-04	VL: 7.698e-04 current_lr4.8828125e-07
+Epoch: 140	TL: 3.198e-04	VL: 7.689e-04 current_lr4.8828125e-07
+Epoch: 141	TL: 3.197e-04	VL: 7.673e-04 current_lr4.8828125e-07
+Epoch: 142	TL: 3.195e-04	VL: 7.659e-04 current_lr4.8828125e-07
+Epoch: 143	TL: 3.196e-04	VL: 7.664e-04 current_lr4.8828125e-07
+Epoch: 144	TL: 3.195e-04	VL: 7.691e-04 current_lr4.8828125e-07
+Epoch: 145	TL: 3.194e-04	VL: 7.688e-04 current_lr4.8828125e-07
+Epoch: 146	TL: 3.193e-04	VL: 7.662e-04 current_lr4.8828125e-07
+Epoch: 147	TL: 3.193e-04	VL: 7.664e-04 current_lr4.8828125e-07
+Epoch: 148	TL: 3.193e-04	VL: 7.663e-04 current_lr4.8828125e-07
+Epoch: 149	TL: 3.184e-04	VL: 7.667e-04 current_lr2.44140625e-07
+Epoch: 150	TL: 3.183e-04	VL: 7.664e-04 current_lr2.44140625e-07
+Epoch: 151	TL: 3.184e-04	VL: 7.665e-04 current_lr2.44140625e-07
+Epoch: 152	TL: 3.182e-04	VL: 7.661e-04 current_lr2.44140625e-07
+Epoch: 153	TL: 3.182e-04	VL: 7.655e-04 current_lr2.44140625e-07
+Epoch: 154	TL: 3.182e-04	VL: 7.658e-04 current_lr2.44140625e-07
+Epoch: 155	TL: 3.183e-04	VL: 7.659e-04 current_lr2.44140625e-07
+Epoch: 156	TL: 3.181e-04	VL: 7.663e-04 current_lr2.44140625e-07
+Epoch: 157	TL: 3.180e-04	VL: 7.663e-04 current_lr2.44140625e-07
+Epoch: 158	TL: 3.182e-04	VL: 7.655e-04 current_lr2.44140625e-07
+Epoch: 159	TL: 3.183e-04	VL: 7.653e-04 current_lr2.44140625e-07
+Epoch: 160	TL: 3.181e-04	VL: 7.660e-04 current_lr2.44140625e-07
+Epoch: 161	TL: 3.180e-04	VL: 7.650e-04 current_lr2.44140625e-07
+Epoch: 162	TL: 3.180e-04	VL: 7.664e-04 current_lr2.44140625e-07
+Epoch: 163	TL: 3.180e-04	VL: 7.659e-04 current_lr2.44140625e-07
+Epoch: 164	TL: 3.179e-04	VL: 7.654e-04 current_lr2.44140625e-07
+Epoch: 165	TL: 3.179e-04	VL: 7.659e-04 current_lr2.44140625e-07
+Epoch: 166	TL: 3.180e-04	VL: 7.654e-04 current_lr2.44140625e-07
+Epoch: 167	TL: 3.178e-04	VL: 7.653e-04 current_lr2.44140625e-07
+Epoch: 168	TL: 3.174e-04	VL: 7.658e-04 current_lr1.220703125e-07
+Epoch: 169	TL: 3.174e-04	VL: 7.650e-04 current_lr1.220703125e-07
+Epoch: 170	TL: 3.175e-04	VL: 7.652e-04 current_lr1.220703125e-07
+Epoch: 171	TL: 3.175e-04	VL: 7.644e-04 current_lr1.220703125e-07
+Epoch: 172	TL: 3.174e-04	VL: 7.655e-04 current_lr1.220703125e-07
+Epoch: 173	TL: 3.174e-04	VL: 7.649e-04 current_lr1.220703125e-07
+Epoch: 174	TL: 3.173e-04	VL: 7.646e-04 current_lr1.220703125e-07
+Epoch: 175	TL: 3.172e-04	VL: 7.651e-04 current_lr1.220703125e-07
+Epoch: 176	TL: 3.173e-04	VL: 7.657e-04 current_lr1.220703125e-07
+Epoch: 177	TL: 3.172e-04	VL: 7.651e-04 current_lr1.220703125e-07
+Epoch: 178	TL: 3.171e-04	VL: 7.650e-04 current_lr6.103515625e-08
+Epoch: 179	TL: 3.171e-04	VL: 7.644e-04 current_lr6.103515625e-08
+Epoch: 180	TL: 3.171e-04	VL: 7.651e-04 current_lr6.103515625e-08
+Epoch: 181	TL: 3.170e-04	VL: 7.652e-04 current_lr6.103515625e-08
+Epoch: 182	TL: 3.171e-04	VL: 7.646e-04 current_lr6.103515625e-08
+Epoch: 183	TL: 3.171e-04	VL: 7.646e-04 current_lr6.103515625e-08
+Epoch: 184	TL: 3.171e-04	VL: 7.646e-04 current_lr6.103515625e-08
+Epoch: 185	TL: 3.170e-04	VL: 7.650e-04 current_lr6.103515625e-08
+Epoch: 186	TL: 3.170e-04	VL: 7.647e-04 current_lr3.0517578125e-08
+Epoch: 187	TL: 3.168e-04	VL: 7.651e-04 current_lr3.0517578125e-08
+Epoch: 188	TL: 3.168e-04	VL: 7.653e-04 current_lr3.0517578125e-08
+Epoch: 189	TL: 3.168e-04	VL: 7.648e-04 current_lr3.0517578125e-08
+Epoch: 190	TL: 3.169e-04	VL: 7.651e-04 current_lr3.0517578125e-08
+Epoch: 191	TL: 3.168e-04	VL: 7.651e-04 current_lr3.0517578125e-08
+Epoch: 192	TL: 3.169e-04	VL: 7.650e-04 current_lr1.52587890625e-08
+Epoch: 193	TL: 3.168e-04	VL: 7.652e-04 current_lr1.52587890625e-08
+Epoch: 194	TL: 3.168e-04	VL: 7.647e-04 current_lr1.52587890625e-08
+Epoch: 195	TL: 3.168e-04	VL: 7.652e-04 current_lr1.52587890625e-08
+Epoch: 196	TL: 3.168e-04	VL: 7.648e-04 current_lr1.52587890625e-08
+Epoch: 197	TL: 3.167e-04	VL: 7.652e-04 current_lr1.52587890625e-08
+Epoch: 198	TL: 3.167e-04	VL: 7.649e-04 current_lr1.52587890625e-08
+Epoch: 199	TL: 3.168e-04	VL: 7.647e-04 current_lr1.52587890625e-08
+Epoch: 200	TL: 3.168e-04	VL: 7.651e-04 current_lr1.52587890625e-08
+Epoch: 201	TL: 3.168e-04	VL: 7.649e-04 current_lr1.52587890625e-08
+Epoch: 202	TL: 3.167e-04	VL: 7.650e-04 current_lr1.52587890625e-08
+Epoch: 203	TL: 3.168e-04	VL: 7.649e-04 current_lr1.52587890625e-08
+Epoch: 204	TL: 3.168e-04	VL: 7.649e-04 current_lr1.52587890625e-08
+Epoch: 205	TL: 3.167e-04	VL: 7.648e-04 current_lr1.52587890625e-08
+Epoch: 206	TL: 3.167e-04	VL: 7.651e-04 current_lr1.52587890625e-08
+Epoch: 207	TL: 3.167e-04	VL: 7.646e-04 current_lr1.52587890625e-08
+Epoch: 208	TL: 3.167e-04	VL: 7.649e-04 current_lr1.52587890625e-08
+Epoch: 209	TL: 3.168e-04	VL: 7.646e-04 current_lr1.52587890625e-08
+Early stopping triggered after 209 epochs.
+Test MAE: 16.943
+swa Test MAE: 16.943
