@@ -396,7 +396,7 @@ def cli(args: list = []):
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--weight_decay', default=1e-10, type=float)
+    parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -462,7 +462,7 @@ smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-9
+    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-10
 )
 
 import csv
@@ -530,7 +530,7 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss is None:
         smoothed_val_loss = val_loss_epoch
     else:
-        smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch
+        smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
     # Early Stopping
     if smoothed_val_loss < best_val_loss:
