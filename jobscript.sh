@@ -40,6 +40,6 @@ module load cuda/11.8
 module load python3/3.10.13
 
 source $BLACKHOLE/group85/painn/bin/activate
-python3 $BLACKHOLE/group85/02456_painn_project/pyPaiNN.py
+python3 $BLACKHOLE/group85/test/02456_painn_project/pyPaiNN.py
 
 
