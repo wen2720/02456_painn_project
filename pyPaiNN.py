@@ -458,7 +458,7 @@ patience = 30  # Number of epochs to wait before stopping
 
 
 smoothed_val_loss = None
-smoothing_factor = 0.9
+smoothing_factor = 0.1
 wait = 0
 
 plateau_patience = 5
@@ -504,7 +504,11 @@ for epoch in range(args.num_epochs):
         loss.backward()
         optimizer.step()
         
+        if epoch >= 345:
+            print(f"SWA: scheduler step after {epoch + 1} epochs.")
+            swa_model.update_parameters(painn)
         loss_epoch += loss_step.detach().item()
+        
 
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
@@ -555,9 +559,8 @@ for epoch in range(args.num_epochs):
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
-    if epoch >= 140:
-        print(f"SWA: triggered after {epoch + 1} epochs.")
-        swa_model.update_parameters(painn)
+    if epoch >= 345:
+        print(f"SWA: scheduler step after {epoch + 1} epochs.")
         swa_scheduler.step()
     else:
         scheduler.step(smoothed_val_loss)
