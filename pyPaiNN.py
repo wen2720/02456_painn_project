@@ -455,7 +455,7 @@ best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
-smoothing_factor = 0.9
+smoothing_factor = 0.1 
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
