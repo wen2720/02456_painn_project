@@ -455,7 +455,7 @@ optimizer = torch.optim.AdamW(painn.parameters(),lr=args.lr,weight_decay=args.we
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 100  # Number of epochs to wait before stopping
+patience = 50  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
 smoothing_factor = 0.1
