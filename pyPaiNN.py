@@ -455,14 +455,14 @@ optimizer = torch.optim.AdamW(painn.parameters(),lr=args.lr,weight_decay=args.we
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 30  # Number of epochs to wait before stopping
+patience = 100  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
-smoothing_factor = 0.1 
+smoothing_factor = 0.1
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=5, threshold=1e-4
+    optimizer, mode="min", factor=0.5, patience=patience, threshold=1e-5
 )
 
 import csv
@@ -533,13 +533,13 @@ for epoch in range(args.num_epochs):
         smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
     # Early Stopping
-    if smoothed_val_loss < best_val_loss:
+    if smoothed_val_loss < best_val_loss :
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
         torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
-        if wait >= patience:
+        if wait > patience and smoothed_val_loss> 10*best_val_loss :
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
