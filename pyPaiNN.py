@@ -219,7 +219,7 @@ class AtomwisePostProcessing(nn.Module):
         return output_per_graph
     
 import torch.nn as nn
-from torch.nn import Linear, SiLU
+from torch.nn import Linear, SiLU, Dropout
 from torch_scatter import scatter_sum
 
 class Message(nn.Module):
@@ -228,6 +228,7 @@ class Message(nn.Module):
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(nF, nF),
             SiLU(),
+            Dropout(0.5),
             Linear(nF, 3*nF),
         )
         self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
@@ -276,6 +277,7 @@ class Update(nn.Module):
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(in_features=256, out_features=128),
             SiLU(),
+            Dropout(0.5),
             Linear(in_features=128, out_features=384),
         )
 
@@ -344,6 +346,7 @@ class PaiNN(nn.Module):
         self.Lr = nn.Sequential(
             Linear(in_features=128, out_features=64),
             SiLU(),
+            Dropout(0.5),
             Linear(in_features=64, out_features=1),
         )
 
@@ -385,6 +388,7 @@ def cli(args: list = []):
     parser.add_argument('--batch_size_inference', default=1000, type=int)
     parser.add_argument('--num_workers', default=0, type=int)
     parser.add_argument('--splits', nargs=3, default=[110000, 10000, 10831], type=int) # [num_train, num_val, num_test]
+    #parser.add_argument('--splits', nargs=3, default=[round(0.01*110000), round(0.01*10000), round(0.01*10831)], type=int) # [num_train, num_val, num_test]
     parser.add_argument('--subset_size', default=None, type=int)
 
     # Model
@@ -399,6 +403,8 @@ def cli(args: list = []):
     parser.add_argument('--lr', default=5e-4, type=float)
     parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
+    #parser.add_argument('--num_epochs', default=round(0.5*1000), type=int)
+
 
     args = parser.parse_args(args=args)
     return args
@@ -447,28 +453,27 @@ painn.to(device)
 post_processing.to(device)
 
 import torch.optim as optim
-optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
-#optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
+#optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
+optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
 
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
 
-
-
 smoothed_val_loss = None
-smoothing_factor = 0.1
+smoothing_factor = 0.9
 wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=plateau_patience, threshold=1e-4
+    optimizer, mode="min", factor=0.5, patience=patience, threshold=1e-5
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
 swa_model = AveragedModel(painn)
-swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
+#swa_scheduler = SWALR(optimizer, swa_lr=args.lr)
+swa_scheduler = None
 
 print(args)
 print(painn)
@@ -478,10 +483,16 @@ iCsv = "training_log.csv"
 
 with open(iCsv, mode="w", newline="") as file:
     writer = csv.writer(file)  
-    writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "current_lr"])
+    #writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "current_lr"])
+    writer.writerow(["Epoch", "Training loss", "Validation loss", "current_lr"])
 
-painn.train()
-for epoch in range(args.num_epochs):        
+#painn.train()
+for epoch in range(args.num_epochs):       
+    painn.train()
+    if epoch >= round(0.75*args.num_epochs) and swa_scheduler is None:
+        swa_scheduler = SWALR(optimizer, swa_lr=optimizer.param_groups[0]['lr'])
+        #swa_scheduler = SWALR(optimizer, swa_lr=1e-3)
+        print(f"SWA: scheduler initialized at {epoch + 1}-th epochs.")
 
     loss_epoch = 0.
     for batch in dm.train_dataloader():
@@ -504,9 +515,9 @@ for epoch in range(args.num_epochs):
         loss.backward()
         optimizer.step()
         
-        if epoch >= 345:
-            print(f"SWA: scheduler step after {epoch + 1} epochs.")
+        if epoch >= 0.75*args.num_epochs:
             swa_model.update_parameters(painn)
+        
         loss_epoch += loss_step.detach().item()
         
 
@@ -537,60 +548,61 @@ for epoch in range(args.num_epochs):
     val_losses.append(val_loss_epoch)
     
 
-    if smoothed_val_loss is None:
-        smoothed_val_loss = val_loss_epoch
-    else:
-        smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
+    # if smoothed_val_loss is None:
+    #     smoothed_val_loss = val_loss_epoch
+    # else:
+    #     smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch 
 
     current_lr = optimizer.param_groups[0]['lr']
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tsmoothed_val_loss: {smoothed_val_loss} current_lr{current_lr}")
+    #print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tsmoothed_val_loss: {smoothed_val_loss} current_lr{current_lr}")
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tcurrent_lr{current_lr}")
     with open(iCsv, mode="a", newline="") as file:
         writer = csv.writer(file)  
-        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
+        #writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
+        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, current_lr])
     
     # Early Stopping
-    if smoothed_val_loss < best_val_loss:
-        best_val_loss = smoothed_val_loss
-        wait = 0  
-        torch.save(painn.state_dict(), "better_painn.pth")
-    else:
-        wait += 1
-        if wait >= patience:
-            print(f"Early stopping triggered after {epoch + 1} epochs.")
-            break
+    # if smoothed_val_loss < best_val_loss:
+    #     best_val_loss = smoothed_val_loss
+    #     wait = 0  
+    #     torch.save(painn.state_dict(), "better_painn.pth")
+    # else:
+    #     wait += 1
+    #     if wait >= patience:
+    #         print(f"Early stopping triggered after {epoch + 1} epochs.")
+    #         break
 
-    if epoch >= 345:
-        print(f"SWA: scheduler step after {epoch + 1} epochs.")
+    if epoch >= 0.75*args.num_epochs:
         swa_scheduler.step()
     else:
-        scheduler.step(smoothed_val_loss)
+        scheduler.step(val_loss_epoch)
+        #scheduler.step(smoothed_val_loss)
     
 
-painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
-mae = 0
-painn.eval()
-with torch.no_grad():
-    for batch in dm.test_dataloader():
-        batch = batch.to(device)
+# painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
+# mae = 0
+# painn.eval()
+# with torch.no_grad():
+#     for batch in dm.test_dataloader():
+#         batch = batch.to(device)
 
-        atomic_contributions = painn(
-            atoms=batch.z,
-            atom_positions=batch.pos,
-            graph_indexes=batch.batch,
-        )
-        preds = post_processing(
-            atoms=batch.z,
-            graph_indexes=batch.batch,
-            atomic_contributions=atomic_contributions,
-        )
-        mae += F.l1_loss(preds, batch.y, reduction='sum')
+#         atomic_contributions = painn(
+#             atoms=batch.z,
+#             atom_positions=batch.pos,
+#             graph_indexes=batch.batch,
+#         )
+#         preds = post_processing(
+#             atoms=batch.z,
+#             graph_indexes=batch.batch,
+#             atomic_contributions=atomic_contributions,
+#         )
+#         mae += F.l1_loss(preds, batch.y, reduction='sum')
 
-mae /= len(dm.data_test)
-unit_conversion = dm.unit_conversion[args.target]
-print(f'Test MAE: {unit_conversion(mae):.3f}')
+# mae /= len(dm.data_test)
+# unit_conversion = dm.unit_conversion[args.target]
+# print(f'Test MAE: {unit_conversion(mae):.3f}')
 
 
-torch.optim.swa_utils.update_bn(dm.train_dataloader(), swa_model)
 swa_mae = 0
 swa_model.eval()
 with torch.no_grad():
@@ -611,7 +623,7 @@ with torch.no_grad():
 
 swa_mae /= len(dm.data_test)
 unit_conversion = dm.unit_conversion[args.target]
-print(f'swa Test MAE: {unit_conversion(mae):.3f}')
+print(f'swa Test MAE: {unit_conversion(swa_mae):.3f}')
 
 
 # Plot Training and Validation Metrics
