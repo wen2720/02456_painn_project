@@ -219,7 +219,7 @@ class AtomwisePostProcessing(nn.Module):
         return output_per_graph
     
 import torch.nn as nn
-from torch.nn import Linear, SiLU
+from torch.nn import Linear, SiLU, Dropout
 from torch_scatter import scatter_sum
 
 class Message(nn.Module):
@@ -228,6 +228,7 @@ class Message(nn.Module):
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(nF, nF),
             SiLU(),
+            Dropout(0.5),
             Linear(nF, 3*nF),
         )
         self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
@@ -276,6 +277,7 @@ class Update(nn.Module):
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(in_features=256, out_features=128),
             SiLU(),
+            Dropout(0.5),
             Linear(in_features=128, out_features=384),
         )
 
@@ -344,6 +346,7 @@ class PaiNN(nn.Module):
         self.Lr = nn.Sequential(
             Linear(in_features=128, out_features=64),
             SiLU(),
+            Dropout(0.5),
             Linear(in_features=64, out_features=1),
         )
 
