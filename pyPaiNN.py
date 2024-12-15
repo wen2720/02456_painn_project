@@ -462,7 +462,7 @@ smoothing_factor = 0.1
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=patience, threshold=1e-5
+    optimizer, mode="min", factor=0.25, patience=patience, threshold=1e-4
 )
 
 import csv
@@ -536,7 +536,7 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss < best_val_loss :
         best_val_loss = smoothed_val_loss
         wait = 0  # Reset the patience counter
-        torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
+        #torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
         if wait > patience and smoothed_val_loss> 1.5*best_val_loss :
@@ -553,7 +553,7 @@ for epoch in range(args.num_epochs):
 
     scheduler.step(smoothed_val_loss)
 
-painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
+#painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
 mae = 0
 painn.eval()
 with torch.no_grad():
@@ -582,6 +582,7 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
 plt.plot(val_losses, label="Val Loss")
+plt.plot(smoothed_val_loss, label="smoothened Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.yscale('log')
