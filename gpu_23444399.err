@@ -1,0 +1,9 @@
+Loaded module: cuda/11.8
+Loaded dependency [python3/3.10.13]: sqlite3/3.45.1
+Loaded dependency [python3/3.10.13]: gcc/12.3.0-binutils-2.40
+Loaded module: python3/3.10.13
+
+Loading python3/3.10.13
+  Loading requirement: sqlite3/3.45.1 gcc/12.3.0-binutils-2.40
+Matplotlib created a temporary cache directory at /tmp/matplotlib-wzgivmcl because the default path (/zhome/08/3/89128/.config/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+Seed set to 0
