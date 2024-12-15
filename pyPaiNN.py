@@ -453,16 +453,16 @@ painn.to(device)
 post_processing.to(device)
 
 import torch.optim as optim
-optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
-#optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
+#optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
+optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
 
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 50  # Number of epochs to wait before stopping
+patience = 30  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
-smoothing_factor = 0.9
+smoothing_factor = 0.5
 wait = 0
 
 plateau_patience = 5
@@ -484,9 +484,8 @@ with open(iCsv, mode="w", newline="") as file:
     writer = csv.writer(file)  
     writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "current_lr"])
 
-#painn.train()
+painn.train()
 for epoch in range(args.num_epochs):       
-    painn.train()
     if epoch >= round(0.75*args.num_epochs) and swa_scheduler is None:
         swa_scheduler = SWALR(optimizer, swa_lr=optimizer.param_groups[0]['lr'])
         print(f"SWA: scheduler initialized at {epoch + 1}-th epochs.")
@@ -563,7 +562,7 @@ for epoch in range(args.num_epochs):
         torch.save(painn.state_dict(), "better_painn.pth")
     else:
         wait += 1
-        if wait > patience and smoothed_val_loss > 10*best_val_loss:
+        if wait > patience and smoothed_val_loss > 1.5*best_val_loss:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
@@ -629,6 +628,7 @@ plt.plot(train_losses, label="Train Loss")
 plt.plot(val_losses, label="Val Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
+plt.yscale('log')
 plt.legend()
 plt.title("Training and Validation Metrics")
 #plt.show()
