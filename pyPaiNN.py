@@ -453,8 +453,8 @@ painn.to(device)
 post_processing.to(device)
 
 import torch.optim as optim
-optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
-#optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
+#optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
+optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
 
 
 train_losses, val_losses, val_maes = [], [], []
