@@ -539,7 +539,7 @@ for epoch in range(args.num_epochs):
         torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
-        if wait > patience and smoothed_val_loss> 10*best_val_loss :
+        if wait > patience and smoothed_val_loss> 1.5*best_val_loss :
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
