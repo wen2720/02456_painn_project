@@ -400,7 +400,8 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=5e-4, type=float)
+    #parser.add_argument('--lr', default=5e-4, type=float)0.000125
+    parser.add_argument('--lr', default=0.000125, type=float)
     parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
     #parser.add_argument('--num_epochs', default=round(0.5*1000), type=int)
@@ -467,7 +468,7 @@ wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.75, patience=patience, threshold=1e-4
+    optimizer, mode="min", factor=0.75, patience=patience, threshold=1e-5
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
@@ -628,7 +629,7 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
 plt.plot(val_losses, label="Val Loss")
-plt.plot(smoothed_val_loss, label="smoothend Loss")
+#plt.plot(smoothed_val_loss, label="smoothend Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.yscale('log')
