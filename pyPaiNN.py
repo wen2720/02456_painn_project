@@ -462,7 +462,7 @@ smoothing_factor = 0.1
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.25, patience=patience, threshold=1e-4
+    optimizer, mode="min", factor=0.75, patience=patience, threshold=1e-5
 )
 
 import csv
@@ -523,7 +523,7 @@ for epoch in range(args.num_epochs):
             loss_step = F.mse_loss(preds, batch.y, reduction='sum')
 
             val_loss_epoch += loss_step.item()
-
+        painn.train()
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
 
