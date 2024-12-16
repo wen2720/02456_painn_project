@@ -467,7 +467,7 @@ wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.25, patience=patience, threshold=1e-5
+    optimizer, mode="min", factor=0.75, patience=patience, threshold=1e-4
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
@@ -487,7 +487,7 @@ with open(iCsv, mode="w", newline="") as file:
 painn.train()
 for epoch in range(args.num_epochs):       
     if epoch >= round(0.75*args.num_epochs) and swa_scheduler is None:
-        swa_scheduler = SWALR(optimizer, swa_lr=optimizer.param_groups[0]['lr'])
+        swa_scheduler = SWALR(optimizer, swa_lr=0.000125)
         print(f"SWA: scheduler initialized at {epoch + 1}-th epochs.")
 
     loss_epoch = 0.
