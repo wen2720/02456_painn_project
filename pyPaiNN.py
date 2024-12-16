@@ -453,8 +453,8 @@ painn.to(device)
 post_processing.to(device)
 
 import torch.optim as optim
-#optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
-optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
+optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_decay)
+#optimizer = optim.SGD(painn.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
 
 
 train_losses, val_losses, val_maes = [], [], []
@@ -462,12 +462,12 @@ best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
-smoothing_factor = 0.5
+smoothing_factor = 0.9
 wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=patience, threshold=1e-5
+    optimizer, mode="min", factor=0.25, patience=patience, threshold=1e-5
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
@@ -626,6 +626,7 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
 plt.plot(val_losses, label="Val Loss")
+plt.plot(smoothed_val_loss, label="smoothend Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.yscale('log')
