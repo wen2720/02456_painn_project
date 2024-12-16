@@ -459,7 +459,7 @@ optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 30  # Number of epochs to wait before stopping
+patience = 3  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
 smoothing_factor = 0.9
@@ -467,7 +467,7 @@ wait = 0
 
 plateau_patience = 5
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.25, patience=patience, threshold=1e-5
+    optimizer, mode="min", factor=0.75, patience=patience, threshold=1e-4
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
@@ -487,7 +487,7 @@ with open(iCsv, mode="w", newline="") as file:
 painn.train()
 for epoch in range(args.num_epochs):       
     if epoch >= round(0.75*args.num_epochs) and swa_scheduler is None:
-        swa_scheduler = SWALR(optimizer, swa_lr=optimizer.param_groups[0]['lr'])
+        swa_scheduler = SWALR(optimizer, swa_lr=0.000125)
         print(f"SWA: scheduler initialized at {epoch + 1}-th epochs.")
 
     loss_epoch = 0.
@@ -520,57 +520,59 @@ for epoch in range(args.num_epochs):
     loss_epoch /= len(dm.data_train)
     train_losses.append(loss_epoch)
 
-    painn.eval()
-    val_loss_epoch = 0.0
-    with torch.no_grad():
-        for batch in dm.val_dataloader():
-            batch = batch.to(device)
+    if epoch % 10 == 0:
+        painn.eval()
+        val_loss_epoch = 0.0
+        with torch.no_grad():
+            for batch in dm.val_dataloader():
+                batch = batch.to(device)
 
-            atomic_contributions = painn(
-                atoms=batch.z,
-                atom_positions=batch.pos,
-                graph_indexes=batch.batch,
-            )
-            preds = post_processing(
-                atoms=batch.z,
-                graph_indexes=batch.batch,
-                atomic_contributions=atomic_contributions,
-            )
-            loss_step = F.mse_loss(preds, batch.y, reduction='sum')
+                atomic_contributions = painn(
+                    atoms=batch.z,
+                    atom_positions=batch.pos,
+                    graph_indexes=batch.batch,
+                )
+                preds = post_processing(
+                    atoms=batch.z,
+                    graph_indexes=batch.batch,
+                    atomic_contributions=atomic_contributions,
+                )
+                loss_step = F.mse_loss(preds, batch.y, reduction='sum')
 
-            val_loss_epoch += loss_step.item()
+                val_loss_epoch += loss_step.item()
+            painn.train()
 
-    val_loss_epoch /= len(dm.data_val)
-    val_losses.append(val_loss_epoch)
+        val_loss_epoch /= len(dm.data_val)
+        val_losses.append(val_loss_epoch)
     
 
-    if smoothed_val_loss is None:
-        smoothed_val_loss = val_loss_epoch
-    else:
-        smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch 
+        if smoothed_val_loss is None:
+            smoothed_val_loss = val_loss_epoch
+        else:
+            smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch 
 
-    current_lr = optimizer.param_groups[0]['lr']
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tsmoothed_val_loss: {smoothed_val_loss} current_lr{current_lr}")
-    with open(iCsv, mode="a", newline="") as file:
-        writer = csv.writer(file)  
-        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
-    
-    # Early Stopping
-    if smoothed_val_loss < best_val_loss:
-        best_val_loss = smoothed_val_loss
-        wait = 0  
-        torch.save(painn.state_dict(), "better_painn.pth")
-    else:
-        wait += 1
-        if wait > patience and smoothed_val_loss > 1.5*best_val_loss:
-            print(f"Early stopping triggered after {epoch + 1} epochs.")
-            break
+        current_lr = optimizer.param_groups[0]['lr']
+        print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tsmoothed_val_loss: {smoothed_val_loss} current_lr{current_lr}")
+        with open(iCsv, mode="a", newline="") as file:
+            writer = csv.writer(file)  
+            writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
+        
+        # Early Stopping
+        if smoothed_val_loss < best_val_loss:
+            best_val_loss = smoothed_val_loss
+            wait = 0  
+            #torch.save(painn.state_dict(), "better_painn.pth")
+        else:
+            wait += 1
+            if wait > patience and smoothed_val_loss > 1.5*best_val_loss:
+                print(f"Early stopping triggered after {epoch + 1} epochs.")
+                break
 
-    if epoch >= 0.75*args.num_epochs:
-        swa_scheduler.step()
-    else:
-        #scheduler.step(val_loss_epoch)
-        scheduler.step(smoothed_val_loss)
+        if epoch >= 0.75*args.num_epochs:
+            swa_scheduler.step()
+        else:
+            #scheduler.step(val_loss_epoch)
+            scheduler.step(smoothed_val_loss)
     
 
 # painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
