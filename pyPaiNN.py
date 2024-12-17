@@ -457,8 +457,9 @@ train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
 
-smoothed_val_loss = None
+
 smoothed_val_losses = []
+smoothed_val_loss = 0.0
 smoothing_factor = 0.5
 wait = 0
 
@@ -528,7 +529,7 @@ for epoch in range(args.num_epochs):
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
 
-    if smoothed_val_loss is None:
+    if smoothed_val_loss == 0.0:
         smoothed_val_loss = val_loss_epoch
     else:
         smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
