@@ -400,7 +400,7 @@ def cli(args: list = []):
 
     # Training    
     parser.add_argument('--lr', default=5e-4, type=float)
-    parser.add_argument('--weight_decay', default=1e-8, type=float)
+    parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
 
     args = parser.parse_args(args=args)
@@ -458,11 +458,12 @@ best_val_loss = float('inf')
 patience = 30  # Number of epochs to wait before stopping
 
 smoothed_val_loss = None
-smoothing_factor = 0.1
+smoothed_val_losses = []
+smoothing_factor = 0.5
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.75, patience=patience, threshold=1e-5
+    optimizer, mode="min", factor=0.5, patience=patience, threshold=1e-5
 )
 
 import csv
@@ -523,7 +524,7 @@ for epoch in range(args.num_epochs):
             loss_step = F.mse_loss(preds, batch.y, reduction='sum')
 
             val_loss_epoch += loss_step.item()
-        painn.train()
+
     val_loss_epoch /= len(dm.data_val)
     val_losses.append(val_loss_epoch)
 
@@ -532,6 +533,7 @@ for epoch in range(args.num_epochs):
     else:
         smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
+    smoothed_val_losses = smoothed_val_losses.append(smoothed_val_loss)
     # Early Stopping
     if smoothed_val_loss < best_val_loss :
         best_val_loss = smoothed_val_loss
@@ -582,7 +584,7 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
 plt.plot(val_losses, label="Val Loss")
-plt.plot(smoothed_val_loss, label="smoothened Loss")
+plt.plot(smoothed_val_losses, label="smoothened Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.yscale('log')
