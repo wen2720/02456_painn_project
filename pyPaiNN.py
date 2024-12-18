@@ -400,7 +400,7 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=5e-4, type=float)
+    parser.add_argument('--lr', default=1e-3, type=float)
     #parser.add_argument('--lr', default=0.000125, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
@@ -566,7 +566,7 @@ for epoch in range(args.num_epochs):
         #torch.save(painn.state_dict(), "better_painn.pth")
     else:
         wait += 1
-        if wait > patience and smoothed_val_loss > 1.5*best_val_loss:
+        if wait > patience:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
 
