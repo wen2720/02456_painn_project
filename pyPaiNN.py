@@ -549,15 +549,15 @@ for epoch in range(args.num_epochs):
         writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, adam_lr])
 
     # Early Stopping
-    if smoothed_val_loss < best_val_loss :
-        best_val_loss = smoothed_val_loss
-        wait = 0  # Reset the patience counter
-        #torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
-    else:
-        wait += 1
-        if wait > patience and smoothed_val_loss:
-            print(f"Early stopping triggered after {epoch + 1} epochs.")
-            break
+    # if smoothed_val_loss < best_val_loss :
+    #     best_val_loss = smoothed_val_loss
+    #     wait = 0  # Reset the patience counter
+    #     #torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
+    # else:
+    #     wait += 1
+    #     if wait > patience and smoothed_val_loss > 1.5* best_val_loss:
+    #         print(f"Early stopping triggered after {epoch + 1} epochs.")
+    #         break
 
     scheduler.step(smoothed_val_loss)
 
