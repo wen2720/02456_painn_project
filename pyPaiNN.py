@@ -227,11 +227,12 @@ class Message(nn.Module):
         super(Message, self).__init__()
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(nF, nF),
+            nn.BatchNorm1d(128),
             SiLU(),
             Dropout(0.5),
             Linear(nF, 3*nF),
         )
-        self.Lrbf = Lrbf if Lrbf is not None else Linear(nRbf, 3*nF)
+        self.Lrbf = Lrbf if Lrbf is not None else nn.Sequential(Linear(nRbf, 3*nF), nn.BatchNorm1d(3*nF))
         self.nRbf = nRbf
         self.rCut = rCut
 
@@ -276,6 +277,7 @@ class Update(nn.Module):
         
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(in_features=256, out_features=128),
+            nn.BatchNorm1d(128),
             SiLU(),
             Dropout(0.5),
             Linear(in_features=128, out_features=384),
@@ -345,6 +347,7 @@ class PaiNN(nn.Module):
 
         self.Lr = nn.Sequential(
             Linear(in_features=128, out_features=64),
+            nn.BatchNorm1d(64),
             SiLU(),
             Dropout(0.5),
             Linear(in_features=64, out_features=1),
@@ -455,7 +458,7 @@ optimizer = torch.optim.AdamW(painn.parameters(),lr=args.lr,weight_decay=args.we
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 30  # Number of epochs to wait before stopping
+patience = 20  # Number of epochs to wait before stopping
 
 
 smoothed_val_losses = []
@@ -472,7 +475,7 @@ iCsv = "training_log.tsv"
 
 with open(iCsv, mode="w", newline="") as file:
     writer = csv.writer(file, delimiter="\t")  
-    writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "Adam LR"])
+    writer.writerow(["Epoch", "Training loss", "Validation loss", "smoothed_val_loss", "LR"])
 
 print(painn)
 painn.train()
@@ -536,6 +539,15 @@ for epoch in range(args.num_epochs):
         smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
     smoothed_val_losses.append(smoothed_val_loss)
+
+    adam_lr = scheduler.optimizer.param_groups[0]['lr']
+    #pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{adam_lr}")
+    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t lr:{adam_lr}")
+    
+    with open(iCsv, mode="a", newline="") as file:
+        writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
+        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, adam_lr])
+
     # Early Stopping
     if smoothed_val_loss < best_val_loss :
         best_val_loss = smoothed_val_loss
@@ -543,17 +555,9 @@ for epoch in range(args.num_epochs):
         #torch.save(painn.state_dict(), "better_painn.pth")  # Save the best model
     else:
         wait += 1
-        if wait > patience and smoothed_val_loss> 1.5*best_val_loss :
+        if wait > patience and smoothed_val_loss:
             print(f"Early stopping triggered after {epoch + 1} epochs.")
             break
-
-    adam_lr = scheduler.optimizer.param_groups[0]['lr']
-    #pbar.set_postfix_str(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\tLR:{adam_lr}")
-    print(f"Epoch: {epoch + 1}\tTL: {loss_epoch:.3e}\tVL: {val_loss_epoch:.3e}\t {smoothed_val_loss:.3e}\t adam_lr:{adam_lr}")
-    
-    with open(iCsv, mode="a", newline="") as file:
-        writer = csv.writer(file, delimiter="\t")  # Use tab as the delimiter
-        writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, adam_lr])
 
     scheduler.step(smoothed_val_loss)
 
