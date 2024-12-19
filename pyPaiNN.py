@@ -402,7 +402,7 @@ def cli(args: list = []):
     # Training    
     parser.add_argument('--lr', default=1e-3, type=float)
     #parser.add_argument('--lr', default=0.000125, type=float)
-    parser.add_argument('--weight_decay', default=1e-4, type=float)
+    parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
     #parser.add_argument('--num_epochs', default=round(0.5*1000), type=int)
 
@@ -460,11 +460,11 @@ optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 20  # Number of epochs to wait before stopping
+patience = 15  # Number of epochs to wait before stopping
 
 smoothed_val_loss = 0.0
 smoothed_val_losses = []
-smoothing_factor = 0.5
+smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
