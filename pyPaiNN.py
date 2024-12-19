@@ -289,7 +289,6 @@ class Update(nn.Module):
         STACK = torch.hstack([V_norm, si])
 
         SP = torch.sum(Uvi * Vvi, dim=-1) 
-
         SPLIT = self.Ls(STACK)
         SPLIT1 = SPLIT[:, 0:128]
         SPLIT2 = SPLIT[:, 128:256]
@@ -400,7 +399,7 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=1e-3, type=float)
+    parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--lr', default=0.000125, type=float)
     parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
