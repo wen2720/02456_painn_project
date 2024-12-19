@@ -227,12 +227,11 @@ class Message(nn.Module):
         super(Message, self).__init__()
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(nF, nF),
-            nn.BatchNorm1d(128),
             SiLU(),
             Dropout(0.5),
             Linear(nF, 3*nF),
         )
-        self.Lrbf = Lrbf if Lrbf is not None else nn.Sequential(Linear(nRbf, 3*nF), nn.BatchNorm1d(3*nF))
+        self.Lrbf = Lrbf if Lrbf is not None else nn.Sequential(Linear(nRbf, 3*nF))
         self.nRbf = nRbf
         self.rCut = rCut
 
@@ -277,7 +276,6 @@ class Update(nn.Module):
         
         self.Ls = Ls if Ls is not None else nn.Sequential(
             Linear(in_features=256, out_features=128),
-            nn.BatchNorm1d(128),
             SiLU(),
             Dropout(0.5),
             Linear(in_features=128, out_features=384),
@@ -347,7 +345,6 @@ class PaiNN(nn.Module):
 
         self.Lr = nn.Sequential(
             Linear(in_features=128, out_features=64),
-            nn.BatchNorm1d(64),
             SiLU(),
             Dropout(0.5),
             Linear(in_features=64, out_features=1),
@@ -458,7 +455,7 @@ optimizer = torch.optim.AdamW(painn.parameters(),lr=args.lr,weight_decay=args.we
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 20  # Number of epochs to wait before stopping
+patience = 15  # Number of epochs to wait before stopping
 
 
 smoothed_val_losses = []
