@@ -202,7 +202,7 @@ class AtomwisePostProcessing(nn.Module):
         """
         num_graphs = torch.unique(graph_indexes).shape[0]
 
-        atomic_contributions = atomic_contributions*self.scale + self.shift
+        #atomic_contributions = atomic_contributions*self.scale + self.shift
         atomic_contributions = atomic_contributions + self.atom_refs(atoms)
 
         # Sum contributions for each graph
@@ -455,7 +455,7 @@ optimizer = torch.optim.AdamW(painn.parameters(),lr=args.lr,weight_decay=args.we
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 20  # Number of epochs to wait before stopping
+patience = 25  # Number of epochs to wait before stopping
 
 
 smoothed_val_losses = []
