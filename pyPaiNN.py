@@ -415,7 +415,7 @@ def cli(args: list = []):
     #parser.add_argument('--lr', default=0.000125, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
-    parser.add_argument('--num_epochs', default=round(100), type=int)
+    #parser.add_argument('--num_epochs', default=round(100), type=int)
 
 
     args = parser.parse_args(args=args)
