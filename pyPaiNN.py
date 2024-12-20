@@ -21,7 +21,7 @@ class GetTarget(BaseTransform):
 
     def forward(self, data: Data) -> Data:
         if self.target is not None:
-            data.y = data.y[:, self.target]*1000
+            data.y = data.y[:, self.target]
         return data
 
 
@@ -71,7 +71,7 @@ class QM9DataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None) -> None:
         dataset = QM9(root=self.data_dir, transform=GetTarget(self.target))
-
+ 
         # Shuffle dataset
         rng = np.random.default_rng(seed=self.seed)
         dataset = dataset[rng.permutation(len(dataset))]
@@ -88,8 +88,19 @@ class QM9DataModule(pl.LightningDataModule):
 
         split_idx = np.cumsum(split_sizes)
         self.data_train = dataset[:split_idx[0]]
+        yM = self.data_train.y[:,7].mean()
+        yS = self.data_train.y[:,7].std()
+        self.data_train.y[:,7] =(self.data_train.y[:,7]-yM)/(yS+1e10) 
+        #print(self.data_train.y[:,7].shape)
+        #print(self.data_train.y[:,7].shape)
+        
         self.data_val = dataset[split_idx[0]:split_idx[1]]
+        self.data_val.y[:,7] =(self.data_val.y[:,7]-yM)/(yS+1e10) 
+        #print(self.data_val.y.shape)
+        
         self.data_test = dataset[split_idx[1]:]
+        self.data_test.y[:,7] =(self.data_test.y[:,7]-yM)/(yS+1e10) 
+        #print(self.data_test.y.shape)
 
 
     def get_target_stats(
@@ -112,6 +123,7 @@ class QM9DataModule(pl.LightningDataModule):
             ys.append(y)
 
         y = torch.cat(ys, dim=0)
+
         return y.mean(), y.std(), atom_refs
 
 
@@ -202,7 +214,7 @@ class AtomwisePostProcessing(nn.Module):
         """
         num_graphs = torch.unique(graph_indexes).shape[0]
 
-        atomic_contributions = atomic_contributions*self.scale + self.shift
+        #atomic_contributions = atomic_contributions*self.scale + self.shift
         atomic_contributions = atomic_contributions + self.atom_refs(atoms)
 
         # Sum contributions for each graph
@@ -399,11 +411,11 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=2e-4, type=float)
+    parser.add_argument('--lr', default=5e-4, type=float)
     #parser.add_argument('--lr', default=0.000125, type=float)
-    parser.add_argument('--weight_decay', default=1e-8, type=float)
+    parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
-    #parser.add_argument('--num_epochs', default=round(0.5*1000), type=int)
+    parser.add_argument('--num_epochs', default=round(100), type=int)
 
 
     args = parser.parse_args(args=args)
@@ -459,15 +471,16 @@ optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 20  # Number of epochs to wait before stopping
+patience = 30  # Number of epochs to wait before stopping
+lr_patience = 5
 
 smoothed_val_loss = 0.0
 smoothed_val_losses = []
-smoothing_factor = 0.5
+smoothing_factor = 0.9
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, mode="min", factor=0.5, patience=patience, threshold=1e-5
+    optimizer, mode="min", factor=0.5, patience=lr_patience, threshold=1e-4
 )
 
 from torch.optim.swa_utils import AveragedModel, SWALR
@@ -504,6 +517,7 @@ for epoch in range(args.num_epochs):
             graph_indexes=batch.batch,
             atomic_contributions=atomic_contributions,
         )
+        #print(preds.shape, batch.y)
         loss_step = F.mse_loss(preds, batch.y, reduction='sum')
         loss = loss_step / len(batch.y)
 
@@ -548,7 +562,7 @@ for epoch in range(args.num_epochs):
     if smoothed_val_loss == 0.0:
         smoothed_val_loss = val_loss_epoch
     else:
-        smoothed_val_loss = smoothing_factor * smoothed_val_loss + (1 - smoothing_factor) * val_loss_epoch 
+        smoothed_val_loss = smoothing_factor * val_loss_epoch + (1 - smoothing_factor) * smoothed_val_loss
 
     smoothed_val_losses.append(smoothed_val_loss)
 
@@ -559,15 +573,15 @@ for epoch in range(args.num_epochs):
         writer.writerow([epoch + 1, loss_epoch, val_loss_epoch, smoothed_val_loss, current_lr])
     
     # Early Stopping
-    # if smoothed_val_loss < best_val_loss:
-    #     best_val_loss = smoothed_val_loss
-    #     wait = 0  
-    #     #torch.save(painn.state_dict(), "better_painn.pth")
-    # else:
-    #     wait += 1
-    #     if wait > patience and smoothed_val_loss > 1.5*best_val_loss:
-    #         print(f"Early stopping triggered after {epoch + 1} epochs.")
-    #         break
+    if smoothed_val_loss < best_val_loss:
+        best_val_loss = smoothed_val_loss
+        wait = 0  
+        #torch.save(painn.state_dict(), "better_painn.pth")
+    else:
+        wait += 1
+        if wait > patience and smoothed_val_loss:
+            print(f"Early stopping triggered after {epoch + 1} epochs.")
+            break
 
     # if epoch >= 0.75*args.num_epochs:
     #     swa_scheduler.step()
@@ -578,31 +592,8 @@ for epoch in range(args.num_epochs):
     
 
 # painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
-# mae = 0
-# painn.eval()
-# with torch.no_grad():
-#     for batch in dm.test_dataloader():
-#         batch = batch.to(device)
-
-#         atomic_contributions = painn(
-#             atoms=batch.z,
-#             atom_positions=batch.pos,
-#             graph_indexes=batch.batch,
-#         )
-#         preds = post_processing(
-#             atoms=batch.z,
-#             graph_indexes=batch.batch,
-#             atomic_contributions=atomic_contributions,
-#         )
-#         mae += F.l1_loss(preds, batch.y, reduction='sum')
-
-# mae /= len(dm.data_test)
-# unit_conversion = dm.unit_conversion[args.target]
-# print(f'Test MAE: {unit_conversion(mae):.3f}')
-
-
-swa_mae = 0
-swa_model.eval()
+mae = 0
+painn.eval()
 with torch.no_grad():
     for batch in dm.test_dataloader():
         batch = batch.to(device)
@@ -617,16 +608,73 @@ with torch.no_grad():
             graph_indexes=batch.batch,
             atomic_contributions=atomic_contributions,
         )
-        swa_mae += F.l1_loss(preds, batch.y, reduction='sum')
+        mae += F.l1_loss(preds, batch.y, reduction='sum')
 
-swa_mae /= len(dm.data_test)
-#unit_conversion = dm.unit_conversion[args.target]
-#print(f'swa Test MAE: {unit_conversion(swa_mae):.3f}')
-print(f'swa Test MAE: {swa_mae}')
+mae /= len(dm.data_test)
+unit_conversion = dm.unit_conversion[args.target]
+print(f'Test MAE: {unit_conversion(mae):.3f}')
+#print(f'Test MAE: {mae}')
+
+
+# swa_mae = 0
+# swa_model.eval()
+# with torch.no_grad():
+#     for batch in dm.test_dataloader():
+#         batch = batch.to(device)
+
+#         atomic_contributions = painn(
+#             atoms=batch.z,
+#             atom_positions=batch.pos,
+#             graph_indexes=batch.batch,
+#         )
+#         preds = post_processing(
+#             atoms=batch.z,
+#             graph_indexes=batch.batch,
+#             atomic_contributions=atomic_contributions,
+#         )
+#         swa_mae += F.l1_loss(preds, batch.y, reduction='sum')
+
+# swa_mae /= len(dm.data_test)
+# unit_conversion = dm.unit_conversion[args.target]
+# print(f'swa Test MAE: {unit_conversion(swa_mae):.3f}')
 
 
 # Plot Training and Validation Metrics
 import matplotlib.pyplot as plt
+
+
+def save_weight_heatmap(model, layer_name, filename):
+    # Navigate to the Ls submodule and get the weights of the last Linear layer
+    weights = None
+    if 'Lm.Ls' in layer_name:
+        # Get the last Linear layer's weights from Lm -> Ls
+        weights = model.Lm.Ls[-1].weight.data  # -1 gives the last Linear layer
+    elif 'Lu.Ls' in layer_name:
+        # Get the last Linear layer's weights from Lu -> Ls
+        weights = model.Lu.Ls[-1].weight.data  # -1 gives the last Linear layer
+
+    if weights is not None:
+        # Transfer the tensor from GPU to CPU
+        weights = weights.cpu()
+
+        # Plot the heatmap
+        plt.figure(figsize=(10, 6))
+        plt.imshow(weights.numpy(), aspect='auto', cmap='viridis')  # or any other colormap
+        plt.colorbar()
+        plt.title(f'Weights of {layer_name}')
+        plt.xlabel('Input Features')
+        plt.ylabel('Neurons')
+        
+        # Save the plot to a file
+        plt.savefig(filename, bbox_inches='tight')
+        plt.close()  # Close the plot to avoid displaying it in some environments
+
+# Save heatmap of weights of the last layer in Lm.Ls (Message module)
+save_weight_heatmap(painn, 'Lm.Ls Last Layer', 'Lm_Ls_weights.png')
+
+# Save heatmap of weights of the last layer in Lu.Ls (Update module)
+save_weight_heatmap(painn, 'Lu.Ls Last Layer', 'Lu_Ls_weights.png')
+
 
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
