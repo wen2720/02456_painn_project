@@ -21,7 +21,7 @@ class GetTarget(BaseTransform):
 
     def forward(self, data: Data) -> Data:
         if self.target is not None:
-            data.y = data.y[:, self.target]
+            data.y = data.y[:, self.target]*1000
         return data
 
 
@@ -399,7 +399,7 @@ def cli(args: list = []):
     parser.add_argument('--cutoff_dist', default=5.0, type=float)
 
     # Training    
-    parser.add_argument('--lr', default=5e-4, type=float)
+    parser.add_argument('--lr', default=2e-4, type=float)
     #parser.add_argument('--lr', default=0.000125, type=float)
     parser.add_argument('--weight_decay', default=1e-8, type=float)
     parser.add_argument('--num_epochs', default=1000, type=int)
@@ -459,11 +459,11 @@ optimizer = optim.AdamW(painn.parameters(), lr=args.lr,weight_decay=args.weight_
 
 train_losses, val_losses, val_maes = [], [], []
 best_val_loss = float('inf')
-patience = 15  # Number of epochs to wait before stopping
+patience = 20  # Number of epochs to wait before stopping
 
 smoothed_val_loss = 0.0
 smoothed_val_losses = []
-smoothing_factor = 0.9
+smoothing_factor = 0.5
 wait = 0
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -486,9 +486,9 @@ with open(iCsv, mode="w", newline="") as file:
 
 painn.train()
 for epoch in range(args.num_epochs):       
-    if epoch >= round(0.75*args.num_epochs) and swa_scheduler is None:
-        swa_scheduler = SWALR(optimizer, swa_lr=0.000125)
-        print(f"SWA: scheduler initialized at {epoch + 1}-th epochs.")
+    # if epoch >= round(0.75*args.num_epochs) and swa_scheduler is None:
+    #     swa_scheduler = SWALR(optimizer, swa_lr=0.000125)
+    #     print(f"SWA: scheduler initialized at {epoch + 1}-th epochs.")
 
     loss_epoch = 0.
     for batch in dm.train_dataloader():
@@ -511,8 +511,8 @@ for epoch in range(args.num_epochs):
         loss.backward()
         optimizer.step()
         
-        if epoch >= 0.75*args.num_epochs:
-            swa_model.update_parameters(painn)
+        # if epoch >= 0.75*args.num_epochs:
+        #     swa_model.update_parameters(painn)
         
         loss_epoch += loss_step.detach().item()
         
@@ -569,11 +569,12 @@ for epoch in range(args.num_epochs):
     #         print(f"Early stopping triggered after {epoch + 1} epochs.")
     #         break
 
-    if epoch >= 0.75*args.num_epochs:
-        swa_scheduler.step()
-    else:
-        #scheduler.step(val_loss_epoch)
-        scheduler.step(smoothed_val_loss)
+    # if epoch >= 0.75*args.num_epochs:
+    #     swa_scheduler.step()
+    # else:
+    #     #scheduler.step(val_loss_epoch)
+    #     scheduler.step(smoothed_val_loss)
+    scheduler.step(smoothed_val_loss)
     
 
 # painn.load_state_dict(torch.load("better_painn.pth", weights_only=True))
@@ -619,8 +620,9 @@ with torch.no_grad():
         swa_mae += F.l1_loss(preds, batch.y, reduction='sum')
 
 swa_mae /= len(dm.data_test)
-unit_conversion = dm.unit_conversion[args.target]
-print(f'swa Test MAE: {unit_conversion(swa_mae):.3f}')
+#unit_conversion = dm.unit_conversion[args.target]
+#print(f'swa Test MAE: {unit_conversion(swa_mae):.3f}')
+print(f'swa Test MAE: {swa_mae}')
 
 
 # Plot Training and Validation Metrics
