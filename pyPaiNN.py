@@ -643,38 +643,6 @@ print(f'Test MAE: {unit_conversion(mae):.3f}')
 import matplotlib.pyplot as plt
 
 
-def save_weight_heatmap(model, layer_name, filename):
-    # Navigate to the Ls submodule and get the weights of the last Linear layer
-    weights = None
-    if 'Lm.Ls' in layer_name:
-        # Get the last Linear layer's weights from Lm -> Ls
-        weights = model.Lm.Ls[-1].weight.data  # -1 gives the last Linear layer
-    elif 'Lu.Ls' in layer_name:
-        # Get the last Linear layer's weights from Lu -> Ls
-        weights = model.Lu.Ls[-1].weight.data  # -1 gives the last Linear layer
-
-    if weights is not None:
-        # Transfer the tensor from GPU to CPU
-        weights = weights.cpu()
-
-        # Plot the heatmap
-        plt.figure(figsize=(10, 6))
-        plt.imshow(weights.numpy(), aspect='auto', cmap='viridis')  # or any other colormap
-        plt.colorbar()
-        plt.title(f'Weights of {layer_name}')
-        plt.xlabel('Input Features')
-        plt.ylabel('Neurons')
-        
-        # Save the plot to a file
-        plt.savefig(filename, bbox_inches='tight')
-        plt.close()  # Close the plot to avoid displaying it in some environments
-
-# Save heatmap of weights of the last layer in Lm.Ls (Message module)
-save_weight_heatmap(painn, 'Lm.Ls Last Layer', 'Lm_Ls_weights.png')
-
-# Save heatmap of weights of the last layer in Lu.Ls (Update module)
-save_weight_heatmap(painn, 'Lu.Ls Last Layer', 'Lu_Ls_weights.png')
-
 
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label="Train Loss")
